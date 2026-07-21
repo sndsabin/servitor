@@ -1,0 +1,17 @@
+{
+    "name": "Memcached",
+    "category": "Cache",
+    "description": "High-performance, distributed memory object caching system.",
+    "logo": "memcached.svg",
+    "image": "memcached",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 11211,
+            "host_port": 11211,
+            "label": "Memcached"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "name": "DynamoDB",
+    "category": "Database",
+    "description": "Amazon DynamoDB local development version.",
+    "logo": "dynamodb.svg",
+    "image": "amazon/dynamodb-local",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 8000,
+            "host_port": 8000,
+            "label": "DynamoDB"
+        }
+    ],
+    "volume_name": "dynamodb_data",
+    "volume_path": "/dynamodb_local_db"
+}

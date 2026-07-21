@@ -1,0 +1,19 @@
+{
+    "name": "OpenWebUI",
+    "category": "AI",
+    "description": "Web interface for local AI models.",
+    "logo": "openwebui.svg",
+    "image": "openwebui/open-webui",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 3000,
+            "host_port": 3000,
+            "label": "HTTP"
+        }
+    ],
+    "volume_name": "openwebui_data",
+    "volume_path": "/app/backend/data"
+}

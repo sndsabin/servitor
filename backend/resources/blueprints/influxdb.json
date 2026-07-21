@@ -1,0 +1,54 @@
+{
+    "name": "InfluxDB",
+    "category": "Database",
+    "description": "Time-series database.",
+    "logo": "influxdb.svg",
+    "image": "influxdb",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 8086,
+            "host_port": 8086,
+            "label": "HTTP"
+        }
+    ],
+    "env": [
+        {
+            "key": "DOCKER_INFLUXDB_INIT_MODE",
+            "default": "setup",
+            "description": "Triggers automatic setup on container start.",
+            "secret": false,
+            "required": true
+        },
+        {
+            "key": "DOCKER_INFLUXDB_INIT_USERNAME",
+            "default": "my-user",
+            "description": "Primary username for the initial setup.",
+            "secret": false,
+            "required": true
+        },
+        {
+            "key": "DOCKER_INFLUXDB_INIT_PASSWORD",
+            "default": "my-password123",
+            "description": "Primary password (minimum 8 characters).",
+            "secret": true,
+            "required": true
+        },
+        {
+            "key": "DOCKER_INFLUXDB_INIT_ORG",
+            "default": "my-org",
+            "description": "Initial organization name.",
+            "secret": false,
+            "required": true
+        },
+        {
+            "key": "DOCKER_INFLUXDB_INIT_BUCKET",
+            "default": "my-bucket",
+            "description": "Initial bucket name.",
+            "secret": false,
+            "required": true
+        }
+    ]
+}

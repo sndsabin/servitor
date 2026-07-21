@@ -1,0 +1,19 @@
+{
+    "name": "Redis",
+    "category": "Cache",
+    "description": "In-memory data structure store, used as a database, cache, and message broker.",
+    "logo": "redis.svg",
+    "image": "redis",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 6379,
+            "host_port": 6379,
+            "label": "Redis"
+        }
+    ],
+    "volume_name": "redis_data",
+    "volume_path": "/data"
+}

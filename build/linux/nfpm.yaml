@@ -1,0 +1,33 @@
+name: Servitor
+arch: amd64
+platform: linux
+version: VERSION_PLACEHOLDER
+section: utils
+priority: optional
+maintainer: Sabin <sndsabin@gmail.com>
+description: |
+  Local Dev Services Made Effortless.
+
+  Servitor makes it easy to spin up common development dependencies
+  as Docker containers. Run MySQL, MariaDB, PostgreSQL, Redis, RabbitMQ,
+  and other services without manually installing, configuring, or managing them.
+
+  Choose the version you need, start the service, and get back to building.
+
+vendor: sndsabin
+homepage: https://sndsabin.github.io/servitor
+license: GPL-3.0
+depends:
+  - WEBKIT_RUNTIME_PLACEHOLDER
+  - libgtk-3-0
+contents:
+  - src: build/bin/servitor
+    dst: /usr/bin/servitor
+    file_info:
+      mode: 0755
+  - src: build/linux/servitor.desktop
+    dst: /usr/share/applications/servitor.desktop
+  - src: build/appicon.png
+    dst: /usr/share/icons/hicolor/512x512/apps/servitor.png
+  - src: build/appicon.svg
+    dst: /usr/share/icons/hicolor/scalable/apps/servitor.svg

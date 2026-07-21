@@ -1,0 +1,40 @@
+{
+    "name": "RabbitMQ",
+    "category": "Message Queue",
+    "description": "Open-source message broker.",
+    "logo": "rabbitmq.svg",
+    "image": "rabbitmq",
+    "versions": [
+        "management-alpine"
+    ],
+    "ports": [
+        {
+            "container_port": 5672,
+            "host_port": 5672,
+            "label": "AMQP"
+        },
+        {
+            "container_port": 15672,
+            "host_port": 15672,
+            "label": "Management"
+        }
+    ],
+    "env": [
+        {
+            "key": "RABBITMQ_DEFAULT_USER",
+            "default": "guest",
+            "description": "The default user to create for the management interface.",
+            "secret": false,
+            "required": false
+        },
+        {
+            "key": "RABBITMQ_DEFAULT_PASS",
+            "default": "guest",
+            "description": "The default password for the management user.",
+            "secret": true,
+            "required": false
+        }
+    ],
+    "volume_name": "rabbitmq_data",
+    "volume_path": "/var/lib/rabbitmq"
+}

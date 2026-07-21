@@ -1,0 +1,35 @@
+{
+    "name": "OpenSearch",
+    "category": "Search",
+    "description": "Community-driven, open-source search and analytics suite.",
+    "logo": "opensearch.svg",
+    "image": "opensearchproject/opensearch",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 9200,
+            "host_port": 9200,
+            "label": "HTTP"
+        }
+    ],
+    "env": [
+        {
+            "key": "discovery.type",
+            "default": "single-node",
+            "description": "Sets the cluster discovery mode. Use 'single-node' for local development.",
+            "secret": false,
+            "required": false
+        },
+        {
+            "key": "OPENSEARCH_INITIAL_ADMIN_PASSWORD",
+            "default": "Admin12345!",
+            "description": "Initial password for the OpenSearch admin user. Required for OpenSearch 2.12 and later.",
+            "secret": true,
+            "required": true
+        }
+    ],
+    "volume_name": "opensearch_data",
+    "volume_path": "/usr/share/opensearch/data"
+}

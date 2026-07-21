@@ -1,0 +1,21 @@
+{
+    "name": "MailDev",
+    "category": "Mail",
+    "description": "SMTP server and web interface for testing emails.",
+    "image": "maildev/maildev",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 1080,
+            "host_port": 1080,
+            "label": "Web"
+        },
+        {
+            "container_port": 1025,
+            "host_port": 1025,
+            "label": "SMTP"
+        }
+    ]
+}

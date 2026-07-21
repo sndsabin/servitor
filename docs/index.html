@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Servitor — Local Dev Services Made Effortless</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SF Mono', 'Consolas', 'monospace'],
+          },
+          colors: {
+            accent: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              400: '#a78bfa',
+              500: '#7c6cf0',
+              600: '#6552e8',
+              700: '#5340c9',
+            },
+            sidebar: {
+              DEFAULT: '#10131f',
+              hover: '#1a1e2e',
+              border: '#232838',
+            },
+            body: '#0a0c14',
+            surface: '#141824',
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0c14;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232838;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #374151;
+  }
+  .glow-subtle {
+    box-shadow: 0 0 80px -20px rgba(124, 108, 240, 0.15);
+  }
+</style>
+</head>
+<body class="bg-body text-slate-300 font-sans antialiased selection:bg-accent-500/30 selection:text-accent-100 min-h-screen flex flex-col justify-between">
+
+  <header class="sticky top-0 z-50 bg-body/80 backdrop-blur-md border-b border-sidebar-border">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-mono font-bold text-lg shadow-md shadow-accent-500/20 group-hover:bg-accent-400 transition-colors">
+          <img src="logo.png" alt="servitor-logo"/>
+        </div>
+        <span class="font-bold text-slate-100 text-lg tracking-tight">Servitor</span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+        <a href="#how-it-works" class="hover:text-slate-100 transition-colors">How it works</a>
+        <a href="https://github.com/sndsabin/servitor" target="_blank" rel="noreferrer" class="hover:text-slate-100 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-grow">
+    <!-- Hero Section -->
+    <section class="pt-20 pb-16 px-6 max-w-5xl mx-auto text-center">
+      <h1 class="text-4xl md:text-6xl font-bold text-slate-100 tracking-tight max-w-3xl mx-auto leading-[1.15]">
+        Dev services, spun up in seconds.
+      </h1>
+
+      <p class="mt-6 text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed">
+        Servitor makes it easy to spin up common development services as Docker containers. Run MySQL, MariaDB, PostgreSQL, Redis, RabbitMQ, and other services without manually installing, configuring, or managing them.
+      </p>
+
+
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a id="hero-download-btn" href="#download" class="w-full sm:w-auto px-7 py-3.5 rounded-lg bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white font-medium text-sm transition-all shadow-lg shadow-accent-500/25 flex items-center justify-center gap-2.5">
+          <span id="hero-os-icon"></span>
+          <span id="hero-btn-text">Download Servitor</span>
+        </a>
+
+        <a href="#download" class="w-full sm:w-auto px-5 py-3.5 rounded-lg bg-sidebar-hover hover:bg-sidebar-border border border-sidebar-border text-slate-300 hover:text-white font-medium text-sm transition-colors flex items-center justify-center gap-2">
+          <span>All Platforms</span>
+          <svg class="w-4 h-4 fill-current opacity-70" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- Demo section -->
+    <section class="max-w-6xl mx-auto px-6 mb-24">
+      <img src="servitor-demo.gif" alt="servitor-dashboard"/>
+    </section>
+
+    <!-- How it works Section -->
+    <section id="how-it-works" class="max-w-5xl mx-auto px-6 py-16 border-t border-sidebar-border">
+      <div class="mx-auto max-w-6xl px-5">
+        <div class="mx-auto max-w-xl text-center">
+          <h2 class="text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">Three steps. That's it.</h2>
+        </div>
+
+        <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
+          <div class="text-center">
+            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-accent-600 font-mono text-[14px] font-bold text-white">1</div>
+            <h3 class="mt-4 text-[14px] font-semibold text-slate-200">Pick a service</h3>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-slate-400">Browse the catalog, search, or filter by category.</p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-accent-600 font-mono text-[14px] font-bold text-white">2</div>
+            <h3 class="mt-4 text-[14px] font-semibold text-slate-200">Set a version</h3>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-slate-400">Type any released image tag.</p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-accent-600 font-mono text-[14px] font-bold text-white">3</div>
+            <h3 class="mt-4 text-[14px] font-semibold text-slate-200">Launch</h3>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-slate-400">It's running. Stop, restart, or check logs from the dashboard anytime.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Download Section -->
+    <section id="download" class="max-w-4xl mx-auto px-6 py-16 text-center">
+      <div class="p-8 rounded-2xl bg-sidebar text-white shadow-xl">
+        <h2 class="text-2xl font-bold">Get Servitor</h2>
+        <p class="text-xs text-slate-400 mt-2 max-w-md mx-auto">
+          Choose your version, start the service, and get back to building.
+        </p>
+
+        <div class="mt-8 flex flex-wrap justify-center items-center gap-3" id="download-buttons"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-sidebar-border bg-sidebar/40 py-8 px-6 text-xs text-slate-500">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-300">Servitor</span>
+        <span>Simplest way to run local dev containers.</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <script type="text/javascript">
+    (function() {
+      document.addEventListener('DOMContentLoaded', () => {
+        const APP_VERSION = "__APP_VERSION__"; // Placehoder that will be replaced by workflow during build
+
+        let userAgent = navigator.userAgent.toLowerCase();
+        let platform = navigator.platform.toLowerCase();
+
+      // Detect OS
+      let userOS = "mac";
+      if (platform.includes("win") || userAgent.includes("windows")) {
+        userOS = 'win';
+      } else if (platform.includes("linux") || userAgent.includes('linux')) {
+        userOS = 'linux';
+      } else if (platform.includes("mac") || userAgent.includes("macintosh")) {
+        userOS = 'mac';
+      }
+
+      let osData = {
+        mac: {
+          label: "Download for macOS",
+          extLabel: "macOS (.dmg)",
+          link: `/servitor/download/servitor_${APP_VERSION}-universal.dmg`,
+          icon: `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.02c.62-.76 1.05-1.82.93-2.88-.9.04-2.01.6-2.65 1.35-.57.66-.99 1.74-.86 2.78 1.01.08 2.05-.53 2.58-1.25z"/></svg>`
+        },
+        win: {
+          label: "Download for Windows",
+          extLabel: "Windows (.exe)",
+          link: `/servitor/download/servitor_${APP_VERSION}.exe`,
+          icon: `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.8"/></svg>`
+        },
+        linux: {
+          label: "Download for Linux",
+          extLabel: "Linux (.deb)",
+          link: `/servitor/download/servitor_${APP_VERSION}_amd64.deb`, 
+          icon: `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <path d="M3 3h18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 2v14h18V5H3zm2.5 3.5l4 3.5-4 3.5-1.4-1.6L6.3 12l-2.2-1.9L5.5 8.5zm5.5 6h7v2h-7v-2z"/>
+          </svg>`
+        }
+      };
+
+      // populate main button
+      let heroBtn = document.getElementById("hero-download-btn");
+      let heroText = document.getElementById("hero-btn-text");
+      let heroIconContainer = document.getElementById("hero-os-icon");
+
+      if (heroBtn && heroText && heroIconContainer) {
+        heroText.textContent = osData[userOS].label;
+        heroIconContainer.innerHTML = osData[userOS].icon;
+        heroBtn.href = osData[userOS].link;
+      }
+
+      // populate bottom download buttons
+      let container = document.getElementById("download-buttons");
+      if (container) {
+        container.innerHTML = Object.entries(osData).map(([key, item]) => {
+          let isDetected = key === userOS;
+
+          let baseClasses = "os-btn group px-5 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 border";
+          
+          let activeClasses = "active-os bg-accent-500 hover:bg-accent-600 text-white shadow-lg shadow-accent-500/30 border-transparent";
+          let inactiveClasses = "border-sidebar-border bg-sidebar-hover text-slate-300";
+
+          return `
+          <a href="${item.link}" data-os="${key}" class="${baseClasses} ${isDetected ? activeClasses : inactiveClasses}">
+          ${item.icon}
+          <span>${item.extLabel}</span>
+          </a>
+          `;
+        }).join("");
+      }
+    });
+    })();
+  </script>
+</body>
+</html>

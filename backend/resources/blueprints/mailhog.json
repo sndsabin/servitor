@@ -1,0 +1,22 @@
+{
+    "name": "MailHog",
+    "category": "Mail",
+    "description": "Email testing tool with a web UI.",
+    "logo": "mailhog.svg",
+    "image": "mailhog/mailhog",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 8025,
+            "host_port": 8025,
+            "label": "Web"
+        },
+        {
+            "container_port": 1025,
+            "host_port": 1025,
+            "label": "SMTP"
+        }
+    ]
+}

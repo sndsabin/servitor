@@ -1,0 +1,19 @@
+{
+    "name": "Ollama",
+    "category": "AI",
+    "description": "Run large language models locally.",
+    "logo": "ollama.svg",
+    "image": "ollama/ollama",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 11434,
+            "host_port": 11434,
+            "label": "HTTP"
+        }
+    ],
+    "volume_name": "ollama_data",
+    "volume_path": "/root/.ollama"
+}

@@ -1,0 +1,32 @@
+{
+    "name": "Buggregator",
+    "category": "Debugging",
+    "description": "Server for debugging and profiling.",
+    "logo": "buggregator.svg",
+    "image": "ghcr.io/buggregator/server",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 8000,
+            "host_port": 8000,
+            "label": "HTTP"
+        },
+        {
+            "container_port": 1025,
+            "host_port": 1025,
+            "label": "SMTP"
+        },
+        {
+            "container_port": 9912,
+            "host_port": 9912,
+            "label": "VarDumper"
+        },
+        {
+            "container_port": 9913,
+            "host_port": 9913,
+            "label": "Monolog"
+        }
+    ]
+}

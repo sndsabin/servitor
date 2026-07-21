@@ -1,0 +1,312 @@
+name: Build and Package Servitor App
+
+on:
+  push:
+    tags:
+      - "v*" # Trigger on version tags (e.g., v1.0.0)
+  pull_request:
+    branches: [master] # Trigger on pull request targeting master branch
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to build (e.g., v0.1.0)"
+        required: true
+        type: string
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  APP_NAME: "servitor"
+  # holds the YAML anchor (immutable) for reuse. The actual value is overridden
+  # at the job level to become a true/false boolean for shell scripts.
+  IS_LINUX: &is_linux "matrix.platform == 'linux'"
+  IS_WINDOWS: &is_windows "matrix.platform == 'windows'"
+  IS_MAC: &is_mac "matrix.platform == 'macOS'"
+  IS_GITHUB_RELEASE_TRIGGER_EVENT: &is_github_release_trigger_event "github.event_name == 'push' || github.event_name == 'workflow_dispatch'"
+
+permissions:
+  contents: write # for creating GitHub Releases
+  pages: write # for github pages
+  id-token: write # for github pages
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macOS
+
+    name: Build on ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
+    env:
+      IS_LINUX: ${{ matrix.platform == 'linux' }}
+      IS_WINDOWS: ${{ matrix.platform == 'windows' }}
+      IS_MAC: ${{ matrix.platform == 'macOS' }}
+      IS_GITHUB_PUSH_EVENT: ${{ github.event_name == 'push' }}
+      IS_GITHUB_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Wails CLI
+        run: |
+          WAILS_VERSION=$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v2) # Resolve WAILS_VERSION from the go.mod file
+          go install github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      # ----- Linux Dependencies (Ubuntu) -----
+      - name: Install Linux C/C++ & GTK dependencies
+        if: *is_linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev build-essential
+          UBUNTU_VERSION=$(lsb_release -rs | cut -d. -f1)
+
+          if [ "$UBUNTU_VERSION" -ge "24" ]; then
+            echo "Detected Ubuntu 24.04+, installing webkit2gtk-4.1"
+            sudo apt-get install -y libwebkit2gtk-4.1-dev
+            echo "WEBKIT_TAG=webkit2_41" >> $GITHUB_ENV
+          else
+            echo "Detected Ubuntu 22.04 or earlier, installing webkit2gtk-4.0"
+            sudo apt-get install -y libwebkit2gtk-4.0-dev
+            echo "WEBKIT_TAG=" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      # ----- Build Step -----
+      - name: Build App
+        run: |
+          if [ "${IS_WINDOWS}" = "true" ]; then
+            wails build -platform windows/amd64 -clean
+          elif [ "${IS_LINUX}" = "true" ]; then
+            if [ -n "$WEBKIT_TAG" ]; then
+              wails build -platform linux/amd64 -clean -tags $WEBKIT_TAG
+            else
+              wails build -platform linux/amd64 -clean
+            fi
+          elif [ "${IS_MAC}" = "true" ]; then
+            wails build -platform darwin/universal -clean
+          fi
+        shell: bash
+
+      # ----- Determine Version (from workflow_action input or tag) -----
+      - name: Set version variable
+        id: version
+        run: |
+          if [ "${IS_GITHUB_WORKFLOW_DISPATCH_EVENT}" = "true" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            
+            # if $(VERSION) env doesn't have v letter as prefix, add v as prefix
+            [[ "$VERSION" != v* ]] && VERSION="v$VERSION"
+          else
+            VERSION=${GITHUB_REF_NAME}
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Stage Windows artifact
+        if: *is_windows
+        run: |
+          mkdir staging
+          cp build/bin/${{ env.APP_NAME }}.exe staging/${{ env.APP_NAME }}_${VERSION}.exe
+        shell: bash
+
+      # ----- Linux Packaging (nFPM) -----
+      - name: Install nFPM
+        if: *is_linux
+        run: |
+          # @TODO: this is tightly coupled with go version; might break if go version in go.mod changes
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.46.3 
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Create Linux .deb package
+        if: *is_linux
+        run: |
+          mkdir -p dist
+
+          # Dynamically replace the runtime dependency placeholder
+          # set the value for WEBKIT_RUNTIME_PLACEHOLDER in nfpm.yaml
+          if [ -n "$WEBKIT_TAG" ]; then
+            sed -i 's/WEBKIT_RUNTIME_PLACEHOLDER/libwebkit2gtk-4.1-0/g' build/linux/nfpm.yaml
+          else
+            sed -i 's/WEBKIT_RUNTIME_PLACEHOLDER/libwebkit2gtk-4.0-37/g' build/linux/nfpm.yaml
+          fi
+
+          if [ "${IS_GITHUB_PUSH_EVENT}" = "true" ] || [ "${IS_GITHUB_WORKFLOW_DISPATCH_EVENT}" = "true" ]; then
+            # For job triggered manually or due to tag push, use the actual version from the tag
+            VERSION_SUFFIX="${VERSION}" # e.g, "v1.2.3"
+            PKG_VERSION="${VERSION#v}" # e.g, "1.2.3" (strips the leading 'v')
+          else
+            # For pull requests: GITHUB_REF_NAME is "pull/123/merge" (invalid as a version)
+            # Use a short commit SHA and a special prerelease version instead
+            VERSION_SUFFIX="pr-${GITHUB_SHA:0:8}"
+            PKG_VERSION="0.0.0-pr"
+          fi
+
+          # set the value for VERSION_PLACEHOLDER in nfpm.yaml
+          sed -i "s/VERSION_PLACEHOLDER/${PKG_VERSION}/g" build/linux/nfpm.yaml
+
+          nfpm package --config build/linux/nfpm.yaml \
+          --target dist/${APP_NAME}_${VERSION_SUFFIX}_amd64.deb
+        shell: bash
+
+      - name: Stage Linux artifacts
+        if: *is_linux
+        run: |
+          mkdir -p staging
+          cp build/bin/${{ env.APP_NAME }} staging/
+          cp dist/*.deb staging/
+        shell: bash
+
+      # ----- macOS DMG Packaging -----
+      - name: Install create-dmg
+        if: *is_mac
+        run: npm install -g create-dmg
+        shell: bash
+
+      - name: Create macOS DMG (Universal)
+        if: *is_mac
+        run: |
+          mkdir -p dist
+          create-dmg --volname "${{ env.APP_NAME }}" --no-code-sign build/bin/${{ env.APP_NAME }}.app dist/
+          mv dist/*.dmg dist/${{ env.APP_NAME }}_${VERSION}_universal.dmg
+        shell: bash
+
+      - name: Stage macOS artifacts
+        if: *is_mac
+        run: |
+          mkdir -p staging
+          cp -R build/bin/${{ env.APP_NAME }}.app staging/
+          cp dist/*.dmg staging/
+        shell: bash
+
+      # ----- Upload Artifacts to Pipeline Storage -----
+      - name: Upload Windows binary
+        if: *is_windows
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-artifact
+          path: staging/
+
+      - name: Upload Linux artifacts
+        if: *is_linux
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-artifact
+          path: |
+            staging/
+
+      - name: Upload macOS artifacts
+        if: *is_mac
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-artifact
+          path: |
+            staging/
+
+  # ----- GitHub Release-----
+  release:
+    name: Create GitHub Release & Deploy Github Pages
+    needs: build
+    if: *is_github_release_trigger_event # skip for pull request on master branch
+    runs-on: ubuntu-latest
+
+    env:
+      IS_GITHUB_PUSH_EVENT: ${{ github.event_name == 'push' }}
+      IS_GITHUB_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${IS_GITHUB_WORKFLOW_DISPATCH_EVENT}" = "true" ]; then
+            TAG="${{ github.event.inputs.version }}"
+            [[ "$TAG" != v* ]] && TAG="v$TAG"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG }}
+          name: ${{ steps.tag.outputs.TAG }}
+          files: release-assets/*
+          generate_release_notes: true
+
+  # ----- GitHub Pages-----
+  deploy:
+    name: Deploy Github Pages
+    needs: build
+    if: *is_github_release_trigger_event # skip for pull request on master branch
+    runs-on: ubuntu-latest
+
+    env:
+      IS_GITHUB_PUSH_EVENT: ${{ github.event_name == 'push' }}
+      IS_GITHUB_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: download
+          merge-multiple: true
+
+      - name: Prepare Pages artifacts
+        run: |
+          mkdir -p pages
+          cp -r docs/* pages
+          mkdir -p pages/download
+          cp -r download/* pages/download
+
+          # Replace __APP_VERSION__ with the output version from the 'build' job
+          sed -i "s/__APP_VERSION__/${{ needs.build.outputs.version }}/g" pages/index.html
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifacts
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: pages
+
+      - name: Deploy Pages
+        uses: actions/deploy-pages@v5

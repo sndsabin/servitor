@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+echo "Running pre-commit checks..."
+
+# check if format check failed
+if [ $? -ne 0 ]; then
+    echo "Run: make fmt"
+    exit 1
+fi
+
+echo "Pre-commit checks passed"

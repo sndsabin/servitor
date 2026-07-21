@@ -1,0 +1,49 @@
+{
+    "name": "MariaDB",
+    "category": "Database",
+    "description": "Community-developed fork of MySQL.",
+    "logo": "mariadb.svg",
+    "image": "mariadb",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 3306,
+            "host_port": 3306,
+            "label": "MySQL"
+        }
+    ],
+    "env": [
+        {
+            "key": "MYSQL_ROOT_PASSWORD",
+            "default": "root",
+            "description": "Root password for the database. Change this in production!",
+            "secret": true,
+            "required": true
+        },
+        {
+            "key": "MYSQL_DATABASE",
+            "default": "homestead",
+            "description": "Name of the default database to create on startup.",
+            "secret": false,
+            "required": false
+        },
+        {
+            "key": "MYSQL_USER",
+            "default": "homestead",
+            "description": "Non-root username to create alongside the root user.",
+            "secret": false,
+            "required": false
+        },
+        {
+            "key": "MYSQL_PASSWORD",
+            "default": "secret",
+            "description": "Password for the non-root user.",
+            "secret": true,
+            "required": false
+        }
+    ],
+    "volume_name": "mariadb_data",
+    "volume_path": "/var/lib/mysql"
+}

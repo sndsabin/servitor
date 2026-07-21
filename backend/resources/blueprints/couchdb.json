@@ -1,0 +1,35 @@
+{
+    "name": "CouchDB",
+    "category": "Database",
+    "description": "NoSQL database using JSON for documents.",
+    "logo": "couchdb.svg",
+    "image": "apache/couchdb",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 5984,
+            "host_port": 5984,
+            "label": "CouchDB"
+        }
+    ],
+    "env": [
+        {
+            "key": "COUCHDB_USER",
+            "default": "couchdb",
+            "description": "Admin username for the CouchDB instance.",
+            "secret": false,
+            "required": true
+        },
+        {
+            "key": "COUCHDB_PASSWORD",
+            "default": "password",
+            "description": "Admin password for the CouchDB instance.",
+            "secret": true,
+            "required": true
+        }
+    ],
+    "volume_name": "couchdb_data",
+    "volume_path": "/opt/couchdb/data"
+}

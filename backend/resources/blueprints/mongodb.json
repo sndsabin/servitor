@@ -1,0 +1,35 @@
+{
+    "name": "MongoDB",
+    "category": "Database",
+    "description": "Document-oriented NoSQL database.",
+    "logo": "mongodb.svg",
+    "image": "mongo",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 27017,
+            "host_port": 27017,
+            "label": "MongoDB"
+        }
+    ],
+    "env": [
+        {
+            "key": "MONGO_INITDB_ROOT_USERNAME",
+            "default": "root",
+            "description": "Username for the root/admin user.",
+            "secret": false,
+            "required": true
+        },
+        {
+            "key": "MONGO_INITDB_ROOT_PASSWORD",
+            "default": "password",
+            "description": "Password for the root/admin user.",
+            "secret": true,
+            "required": true
+        }
+    ],
+    "volume_name": "mongo_data",
+    "volume_path": "/data/db"
+}

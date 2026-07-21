@@ -1,0 +1,16 @@
+{
+    "name": "Beanstalkd",
+    "category": "Message Queue",
+    "description": "Simple, fast work queue.",
+    "versions": [
+        "latest"
+    ],
+    "image": "schickling/beanstalkd",
+    "ports": [
+        {
+            "container_port": 11300,
+            "host_port": 11300,
+            "label": "Beanstalkd"
+        }
+    ]
+}

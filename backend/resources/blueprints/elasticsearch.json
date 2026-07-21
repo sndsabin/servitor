@@ -1,0 +1,35 @@
+{
+    "name": "Elasticsearch",
+    "category": "Search",
+    "description": "Distributed, RESTful search and analytics engine.",
+    "logo": "elasticsearch.svg",
+    "image": "elastic/elasticsearch",
+    "versions": [
+        "8.19.19"
+    ],
+    "ports": [
+        {
+            "container_port": 9200,
+            "host_port": 9200,
+            "label": "HTTP"
+        }
+    ],
+    "env": [
+        {
+            "key": "discovery.type",
+            "default": "single-node",
+            "description": "Sets the cluster discovery mode. Use 'single-node' for local development.",
+            "secret": false,
+            "required": false
+        },
+        {
+            "key": "xpack.security.enabled",
+            "default": "true",
+            "description": "Enables or disables security features (authentication/SSL). Set to 'false' to disable.",
+            "secret": false,
+            "required": false
+        }
+    ],
+    "volume_name": "elasticsearch_data",
+    "volume_path": "/usr/share/elasticsearch/data"
+}

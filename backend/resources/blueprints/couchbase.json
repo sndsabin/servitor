@@ -1,0 +1,104 @@
+{
+    "name": "Couchbase",
+    "category": "Database",
+    "description": "NoSQL document database with a distributed architecture.",
+    "logo": "couchbase.svg",
+    "image": "couchbase",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 8091,
+            "host_port": 8091,
+            "label": "Admin"
+        },
+        {
+            "container_port": 8092,
+            "host_port": 8092,
+            "label": "Views"
+        },
+        {
+            "container_port": 8093,
+            "host_port": 8093,
+            "label": "Query"
+        },
+        {
+            "container_port": 8094,
+            "host_port": 8094,
+            "label": "Search"
+        },
+        {
+            "container_port": 8095,
+            "host_port": 8095,
+            "label": "Analytics"
+        },
+        {
+            "container_port": 8096,
+            "host_port": 8096,
+            "label": "Eventing"
+        },
+        {
+            "container_port": 8097,
+            "host_port": 8097,
+            "label": "Backup"
+        },
+        {
+            "container_port": 9123,
+            "host_port": 9123,
+            "label": "Cluster Management"
+        },
+        {
+            "container_port": 11207,
+            "host_port": 11207,
+            "label": "SSL Data"
+        },
+        {
+            "container_port": 11210,
+            "host_port": 11210,
+            "label": "Data"
+        },
+        {
+            "container_port": 11280,
+            "host_port": 11280,
+            "label": "Prometheus Metrics"
+        },
+        {
+            "container_port": 18091,
+            "host_port": 18091,
+            "label": "SSL Admin"
+        },
+        {
+            "container_port": 18092,
+            "host_port": 18092,
+            "label": "SSL Views"
+        },
+        {
+            "container_port": 18093,
+            "host_port": 18093,
+            "label": "SSL Query"
+        },
+        {
+            "container_port": 18094,
+            "host_port": 18094,
+            "label": "SSL Search"
+        },
+        {
+            "container_port": 18095,
+            "host_port": 18095,
+            "label": "SSL Analytics"
+        },
+        {
+            "container_port": 18096,
+            "host_port": 18096,
+            "label": "SSL Eventing"
+        },
+        {
+            "container_port": 18097,
+            "host_port": 18097,
+            "label": "SSL Backup"
+        }
+    ],
+    "volume_name": "couchbase_data",
+    "volume_path": "/opt/couchbase/var"
+}

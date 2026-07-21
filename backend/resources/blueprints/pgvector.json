@@ -1,0 +1,41 @@
+{
+    "name": "PGVector",
+    "category": "Database",
+    "description": "PostgreSQL with vector similarity search support.",
+    "image": "pgvector/pgvector",
+    "versions": [
+        "pg18"
+    ],
+    "ports": [
+        {
+            "container_port": 5432,
+            "host_port": 5432,
+            "label": "PostgreSQL"
+        }
+    ],
+    "env": [
+        {
+            "key": "POSTGRES_USER",
+            "default": "postgres",
+            "description": "The superuser username for the PostgreSQL instance.",
+            "secret": false,
+            "required": true
+        },
+        {
+            "key": "POSTGRES_PASSWORD",
+            "default": "password",
+            "description": "The superuser password for the PostgreSQL instance.",
+            "secret": true,
+            "required": true
+        },
+        {
+            "key": "POSTGRES_DB",
+            "default": "postgres",
+            "description": "The default database to create on startup.",
+            "secret": false,
+            "required": false
+        }
+    ],
+    "volume_name": "pgvector_data",
+    "volume_path": "/var/lib/postgresql/data"
+}

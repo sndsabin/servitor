@@ -1,0 +1,24 @@
+{
+    "name": "EventStoreDB",
+    "category": "Database",
+    "description": "Event-sourcing database.",
+    "logo": "eventstoredb.svg",
+    "image": "eventstore/eventstore",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 1113,
+            "host_port": 1113,
+            "label": "Internal"
+        },
+        {
+            "container_port": 2113,
+            "host_port": 2113,
+            "label": "Web"
+        }
+    ],
+    "volume_name": "eventstoredb_data",
+    "volume_path": "/var/lib/eventstore"
+}

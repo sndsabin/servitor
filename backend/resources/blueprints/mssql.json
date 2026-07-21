@@ -1,0 +1,42 @@
+{
+    "name": "MS SQL",
+    "category": "Database",
+    "description": "Microsoft SQL Server.",
+    "logo": "mssql.svg",
+    "image": "mcr.microsoft.com/mssql/server",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 1433,
+            "host_port": 1433,
+            "label": "MSSQL"
+        }
+    ],
+    "env": [
+        {
+            "key": "MSSQL_SA_PASSWORD",
+            "default": "Your_password123",
+            "description": "System Administrator (SA) password. Must be at least 8 chars, including uppercase, lowercase, and numbers/special characters.",
+            "secret": true,
+            "required": true
+        },
+        {
+            "key": "SA_PASSWORD",
+            "default": "Your_password123",
+            "description": "System Administrator (SA) password. Must be at least 8 chars, including uppercase, lowercase, and numbers/special characters. (LEGACY)",
+            "secret": true,
+            "required": true
+        },
+        {
+            "key": "ACCEPT_EULA",
+            "default": "Y",
+            "description": "Accept the End-User License Agreement. Must be set to 'Y' to run the container.",
+            "secret": false,
+            "required": true
+        }
+    ],
+    "volume_name": "mssql_data",
+    "volume_path": "/var/opt/mssql"
+}

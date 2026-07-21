@@ -1,0 +1,19 @@
+{
+    "name": "Valkey",
+    "category": "Cache",
+    "description": "Open-source Redis fork maintained by the Linux Foundation.",
+    "logo": "valkey.svg",
+    "image": "valkey/valkey",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 6379,
+            "host_port": 6380,
+            "label": "Redis"
+        }
+    ],
+    "volume_name": "valkey_data",
+    "volume_path": "/data"
+}

@@ -1,0 +1,33 @@
+{
+    "name": "Neo4j",
+    "category": "Database",
+    "description": "Graph database management system.",
+    "logo": "neo4j.svg",
+    "image": "neo4j",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 7474,
+            "host_port": 7474,
+            "label": "HTTP"
+        },
+        {
+            "container_port": 7687,
+            "host_port": 7687,
+            "label": "Bolt"
+        }
+    ],
+    "env": [
+        {
+            "key": "NEO4J_AUTH",
+            "default": "neo4j/password",
+            "description": "Authentication credentials in the format 'username/password'. Set to 'none' to disable auth.",
+            "secret": true,
+            "required": true
+        }
+    ],
+    "volume_name": "neo4j_data",
+    "volume_path": "/data"
+}

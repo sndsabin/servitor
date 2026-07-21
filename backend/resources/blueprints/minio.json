@@ -1,0 +1,46 @@
+{
+    "name": "MinIO",
+    "category": "Storage",
+    "description": "High-performance, S3 compatible object storage.",
+    "logo": "minio.svg",
+    "image": "minio/minio",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 9000,
+            "host_port": 9000,
+            "label": "API"
+        },
+        {
+            "container_port": 9001,
+            "host_port": 9001,
+            "label": "Console"
+        }
+    ],
+    "env": [
+        {
+            "key": "MINIO_ROOT_USER",
+            "default": "minioadmin",
+            "description": "Root user for the MinIO console and API.",
+            "secret": false,
+            "required": true
+        },
+        {
+            "key": "MINIO_ROOT_PASSWORD",
+            "default": "minioadmin",
+            "description": "Root password for the MinIO console and API. Must be at least 8 characters.",
+            "secret": true,
+            "required": true
+        }
+    ],
+    "volume_name": "minio_data",
+    "volume_path": "/data",
+    "command": [
+        "server",
+        "/data",
+        "--console-address",
+        ":9001"
+    ]
+}

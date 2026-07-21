@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Servitor
+Comment=Docker-powered dependency manager
+Exec=servitor
+Icon=servitor
+Categories=Development;System;
+Terminal=false
+Categories=Utility;

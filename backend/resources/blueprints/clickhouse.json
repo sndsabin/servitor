@@ -1,0 +1,23 @@
+{
+    "name": "ClickHouse",
+    "category": "Database",
+    "description": "Open-source column-oriented DBMS for online analytical processing.",
+    "image": "clickhouse/clickhouse-server",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 9000,
+            "host_port": 9000,
+            "label": "Native"
+        },
+        {
+            "container_port": 8123,
+            "host_port": 8123,
+            "label": "HTTP"
+        }
+    ],
+    "volume_name": "clickhouse_data",
+    "volume_path": "/var/lib/clickhouse"
+}

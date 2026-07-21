@@ -1,0 +1,26 @@
+{
+    "name": "MeiliSearch",
+    "category": "Search",
+    "description": "Blazingly fast, hyper-relevant search engine.",
+    "logo": "meilisearch.svg",
+    "image": "getmeili/meilisearch",
+    "versions": [
+        "latest"
+    ],
+    "ports": [
+        {
+            "container_port": 7700,
+            "host_port": 7700,
+            "label": "HTTP"
+        }
+    ],
+    "env": [
+        {
+            "key": "MEILI_MASTER_KEY",
+            "default": "",
+            "description": "Master key for authentication. Keep it blank for development (no auth).",
+            "secret": true,
+            "required": false
+        }
+    ]
+}
