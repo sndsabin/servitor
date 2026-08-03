@@ -45,7 +45,7 @@ type AppConfig struct {
 }
 
 const DockerStatusEvent = "docker:status"
-const syncTImeOut = 5 * time.Minute
+const syncTimeOut = 5 * time.Minute
 
 // NewApp creates a new App application struct
 func NewApp(config *AppConfig) (*App, error) {
@@ -165,7 +165,7 @@ func (a *App) monitorDockerStatus(ctx context.Context) {
 }
 
 func (a *App) syncResourcesWithRemote() {
-	ctx, cancel := context.WithTimeout(a.ctx, syncTImeOut)
+	ctx, cancel := context.WithTimeout(a.ctx, syncTimeOut)
 	defer cancel()
 
 	if err := a.resourceSyncer.SyncWithRemote(ctx); err != nil {
