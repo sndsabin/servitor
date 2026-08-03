@@ -1,5 +1,7 @@
 .vscode
 build/bin
+build/debug/
 node_modules
 frontend/dist
 *.log
+.DS_Store
