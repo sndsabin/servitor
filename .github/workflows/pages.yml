@@ -29,14 +29,17 @@ jobs:
 
       - name: Fetch latest release asset urls
         run: |
-          gh release view \
-          --json tagName,assets \
-          --jq '{
-            version: .tagName,
-            windows: (first(.assets[] | select(.name | ascii_downcase | endswith(".exe"))) | .browser_download_url) // null,
-            linux: (first(.assets[] | select(.name | ascii_downcase | endswith(".deb"))) | .browser_download_url) // null,
-            mac: (first(.assets[] | select(.name | ascii_downcase | endswith(".dmg"))) | .browser_download_url) // null
-          }' > ./docs/assets.json
+          curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/releases/latest \
+            | jq '{
+                version: .tag_name,
+                windows: (first(.assets[] | select(.name | ascii_downcase | endswith(".exe"))) | .browser_download_url) // null,
+                linux: (first(.assets[] | select(.name | ascii_downcase | endswith(".deb"))) | .browser_download_url) // null,
+                mac: (first(.assets[] | select(.name | ascii_downcase | endswith(".dmg"))) | .browser_download_url) // null
+              }' > ./docs/assets.json
+
+          echo "Generated assets.json:"
+          cat ./docs/assets.json
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
