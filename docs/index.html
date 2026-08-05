@@ -43,25 +43,7 @@
     }
   </script>
 
-  <style>
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0a0c14;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #232838;
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #374151;
-  }
-  .glow-subtle {
-    box-shadow: 0 0 80px -20px rgba(124, 108, 240, 0.15);
-  }
-</style>
+  <link href="css/style.css" rel="stylesheet" />
 </head>
 <body class="bg-body text-slate-300 font-sans antialiased selection:bg-accent-500/30 selection:text-accent-100 min-h-screen flex flex-col justify-between">
 
@@ -97,7 +79,7 @@
 
 
       <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a id="hero-download-btn" href="#download" class="w-full sm:w-auto px-7 py-3.5 rounded-lg bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white font-medium text-sm transition-all shadow-lg shadow-accent-500/25 flex items-center justify-center gap-2.5">
+        <a id="hero-download-btn" href="#download" class="w-full sm:w-auto px-7 py-3.5 rounded-lg bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white font-medium text-sm transition-all shadow-lg shadow-accent-500/25 flex items-center justify-center gap-2.5" download>
           <span id="hero-os-icon"></span>
           <span id="hero-btn-text">Download Servitor</span>
         </a>
@@ -235,13 +217,13 @@
         document.addEventListener('DOMContentLoaded', () => {
         const APP_VERSION = "__APP_VERSION__"; // Placehoder that will be replaced by workflow during build
 
-        let userAgent = navigator.userAgent.toLowerCase();
-        let platform = navigator.platform.toLowerCase();
+        const userAgent = navigator.userAgent.toLowerCase();
+        const platform = navigator.platform.toLowerCase();
 
       // Detect OS
       let userOS = "mac";
       if (platform.includes("win") || userAgent.includes("windows")) {
-        userOS = 'win';
+        userOS = 'windows';
       } else if (platform.includes("linux") || userAgent.includes('linux')) {
         userOS = 'linux';
       } else if (platform.includes("mac") || userAgent.includes("macintosh")) {
@@ -252,54 +234,74 @@
         mac: {
           label: "Download for macOS",
           extLabel: "macOS (.dmg)",
-          link: `/servitor/download/servitor_${APP_VERSION}_universal.dmg`,
+          link: "",
           icon: `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.02c.62-.76 1.05-1.82.93-2.88-.9.04-2.01.6-2.65 1.35-.57.66-.99 1.74-.86 2.78 1.01.08 2.05-.53 2.58-1.25z"/></svg>`
         },
-        win: {
+        windows: {
           label: "Download for Windows",
           extLabel: "Windows (.exe)",
-          link: `/servitor/download/servitor_${APP_VERSION}.exe`,
+          link: "",
           icon: `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.8"/></svg>`
         },
         linux: {
           label: "Download for Linux",
           extLabel: "Linux (.deb)",
-          link: `/servitor/download/servitor_${APP_VERSION}_amd64.deb`, 
+          link: "", 
           icon: `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
           <path d="M3 3h18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 2v14h18V5H3zm2.5 3.5l4 3.5-4 3.5-1.4-1.6L6.3 12l-2.2-1.9L5.5 8.5zm5.5 6h7v2h-7v-2z"/>
           </svg>`
         }
       };
 
-      // populate main button
-      let heroBtn = document.getElementById("hero-download-btn");
-      let heroText = document.getElementById("hero-btn-text");
-      let heroIconContainer = document.getElementById("hero-os-icon");
+      fetch ("assets.json")
+      .then(response => response.json())
+      .then(data => {
+        osData["mac"]["link"] = data["mac"];
+        osData["windows"]["link"] = data["windows"];
+        osData["linux"]["link"] = data["linux"];
 
-      if (heroBtn && heroText && heroIconContainer) {
-        heroText.textContent = osData[userOS].label;
-        heroIconContainer.innerHTML = osData[userOS].icon;
-        heroBtn.href = osData[userOS].link;
+        populateMainDownloadButton();
+        populateOtherDownloadButtons();
+      })
+      .catch((err) => {
+        console.log("Error fetching assets json: ", err);
+      });
+
+      // populate main button
+      function populateMainDownloadButton() {
+        const heroBtn = document.getElementById("hero-download-btn");
+        const heroText = document.getElementById("hero-btn-text");
+        const heroIconContainer = document.getElementById("hero-os-icon");
+
+        if (heroBtn && heroText && heroIconContainer) {
+          heroText.textContent = osData[userOS].label;
+          heroIconContainer.innerHTML = osData[userOS].icon;
+          heroBtn.href = osData[userOS].link;
+        }
       }
+      
 
       // populate bottom download buttons
-      let container = document.getElementById("download-buttons");
-      if (container) {
-        container.innerHTML = Object.entries(osData).map(([key, item]) => {
-          let isDetected = key === userOS;
+      function populateOtherDownloadButtons() {
+        const container = document.getElementById("download-buttons");
 
-          let baseClasses = "os-btn group px-5 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 border";
-          
-          let activeClasses = "active-os bg-accent-500 hover:bg-accent-600 text-white shadow-lg shadow-accent-500/30 border-transparent";
-          let inactiveClasses = "border-sidebar-border bg-sidebar-hover text-slate-300";
+        if (container) {
+          container.innerHTML = Object.entries(osData).map(([key, item]) => {
+            const isDetected = key === userOS;
 
-          return `
-          <a href="${item.link}" data-os="${key}" class="${baseClasses} ${isDetected ? activeClasses : inactiveClasses}">
-          ${item.icon}
-          <span>${item.extLabel}</span>
-          </a>
-          `;
-        }).join("");
+            const baseClasses = "os-btn group px-5 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 border";
+            
+            const activeClasses = "active-os bg-accent-500 hover:bg-accent-600 text-white shadow-lg shadow-accent-500/30 border-transparent";
+            const inactiveClasses = "border-sidebar-border bg-sidebar-hover text-slate-300";
+
+            return `
+            <a href="${item.link}" data-os="${key}" class="${baseClasses} ${isDetected ? activeClasses : inactiveClasses}" download>
+            ${item.icon}
+            <span>${item.extLabel}</span>
+            </a>
+            `;
+          }).join("");
+        }
       }
     });
       })();
