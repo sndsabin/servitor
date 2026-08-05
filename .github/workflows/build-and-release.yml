@@ -25,8 +25,6 @@ env:
 
 permissions:
   contents: write # for creating GitHub Releases
-  pages: write # for github pages
-  id-token: write # for github pages
 
 jobs:
   build:
@@ -269,44 +267,3 @@ jobs:
           files: release-assets/*
           generate_release_notes: true
 
-  # ----- GitHub Pages-----
-  deploy:
-    name: Deploy Github Pages
-    needs: build
-    if: *is_github_release_trigger_event # skip for pull request on master branch
-    runs-on: ubuntu-latest
-
-    env:
-      IS_GITHUB_PUSH_EVENT: ${{ github.event_name == 'push' }}
-      IS_GITHUB_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: download
-          merge-multiple: true
-
-      - name: Prepare Pages artifacts
-        run: |
-          mkdir -p pages
-          cp -r docs/* pages
-          mkdir -p pages/download
-          cp -r download/* pages/download
-
-          # Replace __APP_VERSION__ with the output version from the 'build' job
-          sed -i "s/__APP_VERSION__/${{ needs.build.outputs.version }}/g" pages/index.html
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload Pages artifacts
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: pages
-
-      - name: Deploy Pages
-        uses: actions/deploy-pages@v5

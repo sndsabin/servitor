@@ -1,0 +1,47 @@
+name: Deploy pages
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "docs/**"
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Fetch latest release asset urls
+        run: |
+          gh release view \
+          --json tagName,assets \
+          --jq '{
+            version: .tagName,
+            windows: (first(.assets[] | select(.name | ascii_downcase | endswith(".exe"))) | .browser_download_url) // null,
+            linux: (first(.assets[] | select(.name | ascii_downcase | endswith(".deb"))) | .browser_download_url) // null,
+            mac: (first(.assets[] | select(.name | ascii_downcase | endswith(".dmg"))) | .browser_download_url) // null
+          }' > ./docs/assets.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifacts
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+
+      - name: Deploy Pages
+        uses: actions/deploy-pages@v5
