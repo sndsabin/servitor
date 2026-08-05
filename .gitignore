@@ -4,4 +4,5 @@ build/debug/
 node_modules
 frontend/dist
 *.log
+assets.json
 .DS_Store
