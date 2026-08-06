@@ -17,7 +17,7 @@ const (
 
 type Logger struct {
 	logger zerolog.Logger
-	file *os.File
+	file   *os.File
 }
 
 func NewLogger(logDir string) (*Logger, error) {
@@ -43,7 +43,7 @@ func NewLogger(logDir string) (*Logger, error) {
 
 	return &Logger{
 		logger: logger,
-		file: logFile,
+		file:   logFile,
 	}, nil
 }
 
