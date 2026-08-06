@@ -64,7 +64,10 @@ func NewApp(config *AppConfig) (*App, error) {
 	}
 
 	userAgent := fmt.Sprintf("%-%s", strings.ToLower(config.Name), config.Version)
-	docker := docker.New(userAgent, config.Name)
+	docker, err := docker.New(userAgent, config.Name)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceSyncer, err := workspace.NewResourceSyncer(&workspace.ResourceSyncerConfig{
 		BaseUrl:       config.AppResourceBaseUrl,
@@ -134,6 +137,9 @@ func (a *App) Shutdown(_ context.Context) {
 			Err(err).
 			Msg("failed closing docker connection")
 	}
+
+	// close logfile
+	a.logger.Close()
 }
 
 func (a *App) GetAppInfo() AppInfo {
