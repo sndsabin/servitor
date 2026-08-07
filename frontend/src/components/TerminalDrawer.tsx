@@ -68,6 +68,7 @@ const TerminalDrawer = ({ containerId, containerName, onClose }: Props) => {
     terminal.loadAddon(fitAddon);
     terminal.open(terminalRef.current);
     fitAddon.fit(); // fit to the available size
+    terminal.focus();
 
     const connect = async () => {
       if (cancelled) {
