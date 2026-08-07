@@ -164,7 +164,7 @@ jobs:
         if: *is_windows
         run: |
           mkdir staging
-          cp build/bin/${{ env.APP_NAME }}_installer.exe staging/${{ env.APP_NAME }}_${VERSION}_installer.exe
+          cp build/bin/${{ env.APP_NAME }}.exe staging/${{ env.APP_NAME }}_${VERSION}_installer.exe
         shell: bash
 
       # ----- Linux Packaging (nFPM) -----
