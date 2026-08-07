@@ -260,7 +260,7 @@ jobs:
 
   # ----- GitHub Release-----
   release:
-    name: Create GitHub Release & Deploy Github Pages
+    name: Create GitHub Release
     needs: build
     if: *is_github_release_trigger_event # skip for pull request on master branch
     runs-on: ubuntu-latest
