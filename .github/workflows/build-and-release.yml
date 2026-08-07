@@ -133,9 +133,15 @@ jobs:
       - name: Inject version (For Windows Build)
         if: *is_windows
         run: |
+          if [[ "$VERSION" =~ ^pr- ]]; then
+            WINDOWS_VERSION="0.0.0.0"    # for PR
+          else
+            WINDOWS_VERSION="${VERSION#v}.0" # e.g. "v1.2.3" -> 1.2.3.0
+          fi
+
           # Use jq to update only the productVersion field and save it back
-          echo "Setting version to: $VERSION"
-          jq --arg v "$VERSION" '.Info.productVersion = $v' wails.json > tmp.json && mv tmp.json wails.json
+          echo "Setting version to: $WINDOWS_VERSION"
+          jq --arg v "$WINDOWS_VERSION" '.Info.productVersion = $v' wails.json > tmp.json && mv tmp.json wails.json
         shell: bash
 
       # ----- Build Step -----
