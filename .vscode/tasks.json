@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "if [ ${input:useWebKitTag} == \"Yes\" ]; then wails build -debug -tags webkit2_41; else wails build --debug; fi",
+            ],
+            "problemMatcher": [
+                "$go"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "useWebKitTag",
+            "type": "pickString",
+            "description": "Include WebKit 2_41 tags",
+            "options": [
+                "Yes",
+                "No"
+            ],
+            "default": "Yes"
+        }
+    ]
+}
