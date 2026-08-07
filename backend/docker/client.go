@@ -14,6 +14,7 @@ type Docker struct {
 	client     *client.Client
 	Containers *ContainerService
 	Images     *ImageService
+	Terminal   *TerminalService
 }
 
 type DockerStatus struct {
@@ -36,6 +37,7 @@ func New(userAgent string, namespace string) (*Docker, error) {
 		client:     apiClient,
 		Containers: &ContainerService{dockerClient: apiClient, namespace: namespace},
 		Images:     &ImageService{dockerClient: apiClient},
+		Terminal:   &TerminalService{dockerClient: apiClient},
 	}, nil
 }
 

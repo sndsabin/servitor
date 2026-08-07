@@ -1,25 +1,48 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, RefreshCw } from "lucide-react";
 
+import { api } from "../api";
+
 interface Props {
+  containerId: string;
   containerName: string;
-  logs: any;
-  onLogReload: () => void;
   onClose: () => void;
 }
 
-const LogsDrawer = ({ containerName, logs, onLogReload, onClose }: Props) => {
+const LogsDrawer = ({ containerId, containerName, onClose }: Props) => {
   const [loading, setLoading] = useState(false);
+  const [logs, setLogs] = useState("");
+
+  const fetchContainerLogs = async (containerId: string) => {
+    if (!containerId) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setLogs("fetching logs...");
+      const logs = await api.getContainerLogs(containerId);
+      setLogs(logs);
+    } catch (err) {
+      setLogs(`Something went wrong when fetching the logs ${err}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFetchLogs = async () => {
     setLoading(true);
 
     try {
-      await onLogReload();
+      await fetchContainerLogs(containerId);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchContainerLogs(containerId);
+  }, [containerId]);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40" onClick={onClose}>

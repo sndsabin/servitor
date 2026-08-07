@@ -10,6 +10,7 @@ import LogsDrawer from "../components/LogsDrawer";
 import Pagination from "../components/Pagination";
 import ContainerTable from "../components/ContainerTable";
 import { CONTAINER_ACTION, CONTAINER_STATE, FILTER_STATE } from "../constants";
+import TerminalDrawer from "../components/TerminalDrawer";
 
 const PAGE_SIZE = 10;
 
@@ -24,8 +25,8 @@ const Dashboard = () => {
   const [filter, setFilter] = useState<FilterState>(FILTER_STATE.ALL);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [containers, setContainers] = useState<Container[]>([]);
-  const [containerLogs, setContainerLogs] = useState("");
-  const [showLogsDrawerFor, setShowLogsDrawerFor] = useState<Record<string, string>>({});
+  const [openLogsDrawerFor, setOpenLogsDrawerFor] = useState<Record<string, string>>({});
+  const [openTerminalDrawerFor, setOpenTerminalDrawerFor] = useState<Record<string, string>>({});
 
   const { setError } = useOutletContext<OutletContext>();
 
@@ -51,47 +52,34 @@ const Dashboard = () => {
     setContainers(updatedContainers);
   };
 
-  const fetchContainerLogs = async (containerId: string) => {
-    if (containerId) {
-      try {
-        setContainerLogs("fetching logs...");
-        const logs = await api.getContainerLogs(containerId);
-        setContainerLogs(logs);
-      } catch (err) {
-        setContainerLogs(`Something went wrong when fetching the logs ${err}`);
-      }
-    }
-  };
-
-  const handleContainerAction = async ({
-    containerId,
-    containerName,
-    action,
-  }: HandleContainerActionOptions) => {
+  const handleContainerAction = async ({ container, action }: HandleContainerActionOptions) => {
     try {
       switch (action) {
         case CONTAINER_ACTION.STOP:
-          await api.stopContainer(containerId);
-          handleContainerStateChange(containerId, CONTAINER_STATE.PAUSED);
+          await api.stopContainer(container.id);
+          handleContainerStateChange(container.id, CONTAINER_STATE.PAUSED);
           break;
         case CONTAINER_ACTION.START:
-          await api.startContainer(containerId);
-          handleContainerStateChange(containerId, CONTAINER_STATE.RUNNING);
+          await api.startContainer(container.id);
+          handleContainerStateChange(container.id, CONTAINER_STATE.RUNNING);
           break;
         case CONTAINER_ACTION.DELETE:
-          await api.deleteContainer(containerId);
-          handleContainerDelete(containerId);
+          await api.deleteContainer(container.id);
+          handleContainerDelete(container.id);
           break;
         case CONTAINER_ACTION.VIEW_LOGS:
-          await fetchContainerLogs(containerId);
-
-          if (containerName) {
-            setShowLogsDrawerFor({
-              containerId: containerId,
-              containerName: containerName,
-            });
-          }
+          setOpenLogsDrawerFor({
+            containerId: container.id,
+            containerName: container.name,
+          });
           break;
+        case CONTAINER_ACTION.OPEN_TERMINAL:
+          setOpenTerminalDrawerFor({
+            containerId: container.id,
+            containerName: container.name,
+          });
+          break;
+
         default:
           break;
       }
@@ -182,12 +170,19 @@ const Dashboard = () => {
         onPageChange={setPage}
       />
 
-      {Object.keys(showLogsDrawerFor).length > 0 && (
+      {Object.keys(openLogsDrawerFor).length > 0 && (
         <LogsDrawer
-          containerName={showLogsDrawerFor["containerName"] ?? ""}
-          logs={containerLogs}
-          onLogReload={() => fetchContainerLogs(showLogsDrawerFor["containerId"] ?? "")}
-          onClose={() => setShowLogsDrawerFor({})}
+          containerId={openLogsDrawerFor["containerId"]}
+          containerName={openLogsDrawerFor["containerName"] ?? ""}
+          onClose={() => setOpenLogsDrawerFor({})}
+        />
+      )}
+
+      {Object.keys(openTerminalDrawerFor).length > 0 && (
+        <TerminalDrawer
+          containerId={openTerminalDrawerFor["containerId"]}
+          containerName={openTerminalDrawerFor["containerName"]}
+          onClose={() => setOpenTerminalDrawerFor({})}
         />
       )}
     </>
