@@ -27,7 +27,6 @@ const PortField = ({ label, containerPort, defaultHostPort, onChange }: Props) =
   const handleInputBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
     // hostPort = 0 happens when user clears the input and leave it as it is
     // since, port 0 is not valid port, restore it to default one
-    console.log("BLUR FIRED", hostPort, defaultHostPort);
     if (hostPort === 0) {
       setHostPort(defaultHostPort);
       onChange(label, defaultHostPort);
