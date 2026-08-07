@@ -96,11 +96,59 @@ jobs:
           fi
         shell: bash
 
+      # ----- Windows Dependencies -----
+      - name: Install NSIS on Windows
+        if: *is_windows
+        run: |
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+          scoop bucket add extras
+          scoop install nsis
+
+          # Add Scoop's shims directory to PATH for future steps
+          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\scoop\shims"
+        shell: pwsh
+
+      # ----- Determine Version (from workflow_action input or tag) -----
+      - name: Set version variable
+        id: version
+        run: |
+          if [ "${IS_GITHUB_WORKFLOW_DISPATCH_EVENT}" = "true" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            
+            # if $(VERSION) env doesn't have v letter as prefix, add v as prefix
+            [[ "$VERSION" != v* ]] && VERSION="v$VERSION"
+          elif [ "${IS_GITHUB_PUSH_EVENT}" = "true" ]; then
+            VERSION=${GITHUB_REF_NAME} # e.g, "v1.2.3" for tag push
+          else
+            # For pull requests: GITHUB_REF_NAME is "pull/123/merge" (invalid as a version)
+            # Use a short commit SHA and a special prerelease version instead
+            VERSION="pr-${GITHUB_SHA:0:8}"
+          fi
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Inject version (For Windows Build)
+        if: *is_windows
+        run: |
+          if [[ "$VERSION" =~ ^pr- ]]; then
+            WINDOWS_VERSION="0.0.0.0"    # for PR
+          else
+            WINDOWS_VERSION="${VERSION#v}.0" # e.g. "v1.2.3" -> 1.2.3.0
+          fi
+
+          # Use jq to update only the productVersion field and save it back
+          echo "Setting version to: $WINDOWS_VERSION"
+          jq --arg v "$WINDOWS_VERSION" '.Info.productVersion = $v' wails.json > tmp.json && mv tmp.json wails.json
+        shell: bash
+
       # ----- Build Step -----
       - name: Build App
         run: |
           if [ "${IS_WINDOWS}" = "true" ]; then
-            wails build -platform windows/amd64 -clean
+            wails build -nsis
           elif [ "${IS_LINUX}" = "true" ]; then
             if [ -n "$WEBKIT_TAG" ]; then
               wails build -platform linux/amd64 -clean -tags $WEBKIT_TAG
@@ -112,27 +160,11 @@ jobs:
           fi
         shell: bash
 
-      # ----- Determine Version (from workflow_action input or tag) -----
-      - name: Set version variable
-        id: version
-        run: |
-          if [ "${IS_GITHUB_WORKFLOW_DISPATCH_EVENT}" = "true" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-            
-            # if $(VERSION) env doesn't have v letter as prefix, add v as prefix
-            [[ "$VERSION" != v* ]] && VERSION="v$VERSION"
-          else
-            VERSION=${GITHUB_REF_NAME}
-          fi
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-        shell: bash
-
       - name: Stage Windows artifact
         if: *is_windows
         run: |
           mkdir staging
-          cp build/bin/${{ env.APP_NAME }}.exe staging/${{ env.APP_NAME }}_${VERSION}.exe
+          cp build/bin/${{ env.APP_NAME }}.exe staging/${{ env.APP_NAME }}_${VERSION}_installer.exe
         shell: bash
 
       # ----- Linux Packaging (nFPM) -----
@@ -157,15 +189,12 @@ jobs:
             sed -i 's/WEBKIT_RUNTIME_PLACEHOLDER/libwebkit2gtk-4.0-37/g' build/linux/nfpm.yaml
           fi
 
-          if [ "${IS_GITHUB_PUSH_EVENT}" = "true" ] || [ "${IS_GITHUB_WORKFLOW_DISPATCH_EVENT}" = "true" ]; then
-            # For job triggered manually or due to tag push, use the actual version from the tag
-            VERSION_SUFFIX="${VERSION}" # e.g, "v1.2.3"
-            PKG_VERSION="${VERSION#v}" # e.g, "1.2.3" (strips the leading 'v')
-          else
-            # For pull requests: GITHUB_REF_NAME is "pull/123/merge" (invalid as a version)
-            # Use a short commit SHA and a special prerelease version instead
-            VERSION_SUFFIX="pr-${GITHUB_SHA:0:8}"
+          if [[ "$VERSION" =~ ^pr- ]]; then
+            VERSION_SUFFIX="$VERSION"    # e.g. "pr-a1b2c3d4"
             PKG_VERSION="0.0.0-pr"
+          else
+            VERSION_SUFFIX="$VERSION"    # e.g. "v1.2.3"
+            PKG_VERSION="${VERSION#v}"   # e.g. "1.2.3"
           fi
 
           # set the value for VERSION_PLACEHOLDER in nfpm.yaml
@@ -266,4 +295,3 @@ jobs:
           name: ${{ steps.tag.outputs.TAG }}
           files: release-assets/*
           generate_release_notes: true
-

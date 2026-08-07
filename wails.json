@@ -1,9 +1,16 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "servitor",
+  "name": "Servitor",
   "outputfilename": "servitor",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
-  "frontend:dev:serverUrl": "auto"
+  "frontend:dev:serverUrl": "auto",
+  "Info": {
+    "companyName": "sndsabin",
+    "productName": "Servitor",
+    "productVersion": "0.0.1",
+    "copyright": "Copyright © 2026 sndsabin.Licensed under GPLv3",
+    "comments": "Local Dev Services Made Effortless."
+  }
 }

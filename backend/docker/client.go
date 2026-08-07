@@ -12,9 +12,9 @@ const DefaultHost = "0.0.0.0"
 
 type Docker struct {
 	client     *client.Client
-	err        error
 	Containers *ContainerService
 	Images     *ImageService
+	Terminal   *TerminalService
 }
 
 type DockerStatus struct {
@@ -23,31 +23,25 @@ type DockerStatus struct {
 	Error     string `json:"error,omitempty"`
 }
 
-func New(userAgent string, namespace string) *Docker {
+func New(userAgent string, namespace string) (*Docker, error) {
 	if namespace == "" {
-		return &Docker{
-			err: fmt.Errorf("namespace cannot be empty"),
-		}
+		return nil, fmt.Errorf("namespace cannot be empty")
 	}
 
 	apiClient, err := client.New(client.FromEnv, client.WithUserAgent(userAgent))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create docker client: %w", err)
+	}
 
 	return &Docker{
 		client:     apiClient,
-		err:        err,
 		Containers: &ContainerService{dockerClient: apiClient, namespace: namespace},
 		Images:     &ImageService{dockerClient: apiClient},
-	}
+		Terminal:   &TerminalService{dockerClient: apiClient},
+	}, nil
 }
 
 func (d *Docker) GetStatus() DockerStatus {
-	if d.err != nil {
-		return DockerStatus{
-			Available: false,
-			Error:     d.err.Error(),
-		}
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -66,9 +60,5 @@ func (d *Docker) GetStatus() DockerStatus {
 }
 
 func (d *Docker) Close() error {
-	if d.client == nil {
-		return nil
-	}
-
 	return d.client.Close()
 }

@@ -1,14 +1,15 @@
-import { ScrollText, Play, Square, Trash2 } from "lucide-react";
+import { ScrollText, Play, Square, Trash2, SquareTerminal } from "lucide-react";
 
 import { Container, ContainerAction, HandleContainerActionOptions } from "../types";
 import StatusIcon from "./StatusIcon";
 import IconButton from "./IconButton";
 import { CONTAINER_ACTION, CONTAINER_STATE } from "../constants";
 import { useState } from "react";
+import { Terminal } from "@xterm/xterm";
 
 interface Props {
   containers: Container[];
-  onAction: ({ containerId, containerName, action }: HandleContainerActionOptions) => void;
+  onAction: ({ container, action }: HandleContainerActionOptions) => void;
 }
 
 const ContainerTable = ({ containers, onAction }: Props) => {
@@ -22,11 +23,11 @@ const ContainerTable = ({ containers, onAction }: Props) => {
 
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
-  const handleToggleAction = async (containerId: string, action: ContainerAction) => {
-    setActionInProgress(containerId);
+  const handleToggleAction = async (container: Container, action: ContainerAction) => {
+    setActionInProgress(container.id);
 
     try {
-      await onAction({ containerId: containerId, action: action });
+      await onAction({ container: container, action: action });
     } finally {
       setActionInProgress(null);
     }
@@ -85,16 +86,28 @@ const ContainerTable = ({ containers, onAction }: Props) => {
                 <td className="px-5 py-3.5">
                   <div className="flex justify-end gap-1.5">
                     <IconButton
+                      title="Terminal"
+                      disabled={!isRunning ? true : false}
+                      onClick={() =>
+                        onAction({
+                          container: container,
+                          action: CONTAINER_ACTION.OPEN_TERMINAL,
+                        })
+                      }
+                    >
+                      <SquareTerminal size={14} />
+                    </IconButton>
+
+                    <IconButton
                       title="Logs"
                       onClick={() =>
                         onAction({
-                          containerId: container.id,
-                          containerName: container.name,
+                          container: container,
                           action: CONTAINER_ACTION.VIEW_LOGS,
                         })
                       }
                     >
-                      <ScrollText></ScrollText>
+                      <ScrollText size={14} />
                     </IconButton>
 
                     <IconButton
@@ -102,11 +115,11 @@ const ContainerTable = ({ containers, onAction }: Props) => {
                       disabled={actionInProgress === container.id}
                       onClick={() =>
                         isRunning
-                          ? handleToggleAction(container.id, CONTAINER_ACTION.STOP)
-                          : handleToggleAction(container.id, CONTAINER_ACTION.START)
+                          ? handleToggleAction(container, CONTAINER_ACTION.STOP)
+                          : handleToggleAction(container, CONTAINER_ACTION.START)
                       }
                     >
-                      {isRunning ? <Square size={13} /> : <Play size={13} />}
+                      {isRunning ? <Square size={14} /> : <Play size={13} />}
                     </IconButton>
 
                     <IconButton
@@ -115,7 +128,7 @@ const ContainerTable = ({ containers, onAction }: Props) => {
                       danger={true}
                       onClick={() =>
                         onAction({
-                          containerId: container.id,
+                          container: container,
                           action: CONTAINER_ACTION.DELETE,
                         })
                       }

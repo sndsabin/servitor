@@ -27,8 +27,7 @@ export interface Port {
 }
 
 export interface HandleContainerActionOptions {
-  containerId: string;
-  containerName?: string;
+  container: Container;
   action: CONTAINER_ACTION;
 }
 

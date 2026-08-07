@@ -3,7 +3,12 @@ import { EventsOn, EventsOff } from "../wailsjs/runtime/runtime";
 import type { docker } from "../wailsjs/go/models";
 
 import { Container, DockerStatus, Port } from "./types";
-import { CONTAINER_STATE, DOCKER_STATUS_EVENT } from "./constants";
+import {
+  CONTAINER_STATE,
+  DOCKER_STATUS_EVENT,
+  TERMINAL_CLOSED_EVENT,
+  TERMINAL_OUTPUT_EVENT,
+} from "./constants";
 
 const mapPorts = (port: docker.PortSpec): Port => {
   return {
@@ -50,10 +55,34 @@ export const api = {
   findContainer: AppBindings.FindContainer,
   restartContainer: AppBindings.RestartContainer,
   getContainerLogs: AppBindings.GetContainerLogs,
-
   getAllContainers: async (): Promise<Container[]> => {
     const containers = await AppBindings.ListAllContainer();
 
     return containers ? containers.map(mapContainer) : [];
+  },
+
+  startTerminal: AppBindings.StartTerminal,
+  resizeTerminal: AppBindings.ResizeTerminal,
+  sendTerminalInput: AppBindings.SendTerminalInput,
+  closeTerminal: AppBindings.CloseTerminal,
+  onTerminalOutput: (sessionId: string, handler: (data: string) => void) => {
+    const eventName = `${TERMINAL_OUTPUT_EVENT}:${sessionId}`;
+
+    EventsOn(eventName, handler);
+
+    // cleanup
+    return () => {
+      EventsOff(eventName);
+    };
+  },
+  onTerminalClosed: (sessionId: string, handler: () => void) => {
+    const eventName = `${TERMINAL_CLOSED_EVENT}:${sessionId}`;
+
+    EventsOn(eventName, handler);
+
+    // cleanup
+    return () => {
+      EventsOff(eventName);
+    };
   },
 };

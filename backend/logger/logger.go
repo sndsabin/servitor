@@ -16,7 +16,8 @@ const (
 )
 
 type Logger struct {
-	log zerolog.Logger
+	logger zerolog.Logger
+	file   *os.File
 }
 
 func NewLogger(logDir string) (*Logger, error) {
@@ -30,7 +31,7 @@ func NewLogger(logDir string) (*Logger, error) {
 
 	logFile, err := os.OpenFile(
 		logPath,
-		os.O_CREATE|os.O_APPEND,
+		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
 		logFilePermMode,
 	)
 
@@ -41,18 +42,25 @@ func NewLogger(logDir string) (*Logger, error) {
 	logger := zerolog.New(io.MultiWriter(os.Stdout, logFile)).With().Timestamp().Caller().Logger()
 
 	return &Logger{
-		log: logger,
+		logger: logger,
+		file:   logFile,
 	}, nil
 }
 
 func (l *Logger) Info() *zerolog.Event {
-	return l.log.Info()
+	return l.logger.Info()
 }
 
 func (l *Logger) Error() *zerolog.Event {
-	return l.log.Error()
+	return l.logger.Error()
 }
 
 func (l *Logger) Debug() *zerolog.Event {
-	return l.log.Debug()
+	return l.logger.Debug()
+}
+
+func (l *Logger) Close() {
+	if l.file != nil {
+		l.file.Close()
+	}
 }

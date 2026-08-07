@@ -4,6 +4,8 @@ import {docker} from '../models';
 import {backend} from '../models';
 import {network} from '../models';
 
+export function CloseTerminal(arg1:string):Promise<void>;
+
 export function DeleteContainer(arg1:string):Promise<void>;
 
 export function FindContainer(arg1:string):Promise<docker.Container>;
@@ -26,8 +28,14 @@ export function ListAllContainer():Promise<Array<docker.Container>>;
 
 export function Log(arg1:backend.LogLevel,arg2:string):Promise<void>;
 
+export function ResizeTerminal(arg1:string,arg2:number,arg3:number):Promise<void>;
+
 export function RestartContainer(arg1:string):Promise<void>;
 
+export function SendTerminalInput(arg1:string,arg2:string):Promise<void>;
+
 export function StartContainer(arg1:string):Promise<void>;
+
+export function StartTerminal(arg1:string):Promise<string>;
 
 export function StopContainer(arg1:string):Promise<void>;

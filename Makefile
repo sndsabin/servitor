@@ -1,7 +1,5 @@
 .PHONY: setup hooks fmt fmt_check dev build-windows build-linux build-mac clean help
 
-WAILS_TAGS ?=
-
 # setup app
 setup:
 	@make hooks
@@ -45,7 +43,12 @@ build-windows:
 
 # build the app for linux
 build-linux:
-	wails build -platform linux/amd64 $(WAILS_TAGS)
+	@read -p "Include webkit2_41 tag? (y/n): " includeWebkitTag; \
+	if [ "$${includeWebkitTag}" = "n" ] || [ "$${includeWebkitTag}" = "N" ]; then \
+		wails build -platform linux/amd64; \
+	else \
+		wails build -platform linux/amd64 -tags webkit2_41; \
+	fi
 
 # build the app for mac
 build-mac:
