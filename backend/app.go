@@ -63,7 +63,7 @@ func NewApp(config *AppConfig) (*App, error) {
 		return nil, fmt.Errorf("unable to initialize logger: %w", err)
 	}
 
-	userAgent := fmt.Sprintf("%-%s", strings.ToLower(config.Name), config.Version)
+	userAgent := fmt.Sprintf("%s-%s", strings.ToLower(config.Name), config.Version)
 	docker, err := docker.New(userAgent, config.Name)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (a *App) syncResourcesWithRemote() {
 
 func validateConfig(config *AppConfig) error {
 	if config == nil {
-		return fmt.Errorf("config cannot be nill")
+		return fmt.Errorf("config cannot be nil")
 	}
 
 	if config.Name == "" {

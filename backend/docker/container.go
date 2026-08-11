@@ -174,10 +174,10 @@ func (cs *ContainerService) GetLogs(ctx context.Context, containerId string, tai
 	// since, we are not starting docker with TTY enabled,
 	// streams for stdout and stderr are multiplexed.
 	var logs bytes.Buffer
-	// writing to same buffer to preserve the orginal order of stdout and stderr
+	// writing to same buffer to preserve the original order of stdout and stderr
 	_, err = stdcopy.StdCopy(&logs, &logs, reader)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return logs.String(), nil
