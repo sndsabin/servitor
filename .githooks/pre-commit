@@ -2,6 +2,9 @@
 
 echo "Running pre-commit checks..."
 
+# check formatting
+make fmt_check
+
 # check if format check failed
 if [ $? -ne 0 ]; then
     echo "Run: make fmt"
