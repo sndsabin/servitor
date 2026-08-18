@@ -87,6 +87,7 @@ func (a *App) CloseTerminal(sessionID string) error {
 
 	session, ok := a.terminals[sessionID]
 	if !ok {
+		a.mu.Unlock()
 		return fmt.Errorf("session id:%s not found", sessionID)
 	}
 
@@ -108,12 +109,10 @@ func (a *App) streamTerminalOutput(session *Session) {
 		n, err := session.hijack.Reader.Read(buff)
 
 		if err != nil {
-			if _, ok := a.terminals[session.id]; !ok {
-				return
-			}
-
 			a.mu.Lock()
-			delete(a.terminals, session.id)
+			if _, ok := a.terminals[session.id]; ok {
+				delete(a.terminals, session.id)
+			}
 			a.mu.Unlock()
 
 			session.Close()
@@ -131,5 +130,5 @@ func (a *App) emitTerminalOutput(sessionID string, data string) {
 }
 
 func (a *App) emitTerminalClosed(sessionID string) {
-	runtime.EventsEmit(a.ctx, "terminal:closed"+sessionID, true)
+	runtime.EventsEmit(a.ctx, "terminal:closed:"+sessionID, true)
 }
