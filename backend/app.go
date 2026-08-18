@@ -8,6 +8,7 @@ import (
 	"servitor/backend/logger"
 	"servitor/backend/workspace"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -29,6 +30,8 @@ type App struct {
 	serviceCatalog []Service
 	docker         *docker.Docker
 	resourceSyncer *workspace.ResourceSyncer
+	mu             sync.Mutex
+	terminals      map[string]*Session
 }
 
 type AppInfo struct {
@@ -87,6 +90,7 @@ func NewApp(config *AppConfig) (*App, error) {
 		resourcesFS:    resourcesFS,
 		docker:         docker,
 		resourceSyncer: resourceSyncer,
+		terminals:      make(map[string]*Session),
 	}, nil
 }
 
@@ -140,6 +144,15 @@ func (a *App) Shutdown(_ context.Context) {
 
 	// close logfile
 	a.logger.Close()
+
+	// close all terminals
+	for sessionID := range a.terminals {
+		if err := a.CloseTerminal(sessionID); err != nil {
+			a.logger.Error().
+				Err(err).
+				Msg("failed closing terminal")
+		}
+	}
 }
 
 func (a *App) GetAppInfo() AppInfo {
