@@ -135,13 +135,6 @@ func (a *App) Shutdown(_ context.Context) {
 		a.cancel()
 	}
 
-	// close docker client
-	if err := a.docker.Close(); err != nil {
-		a.logger.Error().
-			Err(err).
-			Msg("failed closing docker connection")
-	}
-
 	// close all terminals
 	a.mu.Lock()
 	sessionIDs := make([]string, 0, len(a.terminals))
@@ -158,6 +151,13 @@ func (a *App) Shutdown(_ context.Context) {
 				Err(err).
 				Msg("failed closing terminal")
 		}
+	}
+
+	// close docker client
+	if err := a.docker.Close(); err != nil {
+		a.logger.Error().
+			Err(err).
+			Msg("failed closing docker connection")
 	}
 
 	// close logfile
