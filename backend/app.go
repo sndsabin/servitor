@@ -8,6 +8,7 @@ import (
 	"servitor/backend/logger"
 	"servitor/backend/workspace"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -29,6 +30,8 @@ type App struct {
 	serviceCatalog []Service
 	docker         *docker.Docker
 	resourceSyncer *workspace.ResourceSyncer
+	mu             sync.Mutex
+	terminals      map[string]*Session
 }
 
 type AppInfo struct {
@@ -87,6 +90,7 @@ func NewApp(config *AppConfig) (*App, error) {
 		resourcesFS:    resourcesFS,
 		docker:         docker,
 		resourceSyncer: resourceSyncer,
+		terminals:      make(map[string]*Session),
 	}, nil
 }
 
@@ -131,6 +135,24 @@ func (a *App) Shutdown(_ context.Context) {
 		a.cancel()
 	}
 
+	// close all terminals
+	a.mu.Lock()
+	sessionIDs := make([]string, 0, len(a.terminals))
+
+	for sessionID := range a.terminals {
+		sessionIDs = append(sessionIDs, sessionID)
+	}
+
+	a.mu.Unlock()
+
+	for _, sessionID := range sessionIDs {
+		if err := a.CloseTerminal(sessionID); err != nil {
+			a.logger.Error().
+				Err(err).
+				Msg("failed closing terminal")
+		}
+	}
+
 	// close docker client
 	if err := a.docker.Close(); err != nil {
 		a.logger.Error().
@@ -140,6 +162,7 @@ func (a *App) Shutdown(_ context.Context) {
 
 	// close logfile
 	a.logger.Close()
+
 }
 
 func (a *App) GetAppInfo() AppInfo {
@@ -177,7 +200,7 @@ func (a *App) syncResourcesWithRemote() {
 	if err := a.resourceSyncer.SyncWithRemote(ctx); err != nil {
 		a.logger.Error().
 			Err(err).
-			Msg("error syncing to remote resouces")
+			Msg("error syncing to remote resources")
 	}
 
 	a.logger.Info().

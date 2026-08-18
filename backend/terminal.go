@@ -10,15 +10,18 @@ import (
 )
 
 type Session struct {
-	id     string
-	hijack client.HijackedResponse
-	cancel context.CancelFunc
+	id        string
+	hijack    client.HijackedResponse
+	cancel    context.CancelFunc
+	closeOnce sync.Once
 }
 
-var (
-	mu        sync.Mutex
-	terminals = map[string]*Session{}
-)
+func (s *Session) Close() {
+	s.closeOnce.Do(func() {
+		s.hijack.Close()
+		s.cancel()
+	})
+}
 
 func (a *App) StartTerminal(containerID string) (string, error) {
 	ctxWithCancel, cancel := context.WithCancel(a.ctx)
@@ -35,21 +38,21 @@ func (a *App) StartTerminal(containerID string) (string, error) {
 		cancel: cancel,
 	}
 
-	mu.Lock()
-	terminals[resp.SessionID] = &session
-	mu.Unlock()
+	a.mu.Lock()
+	a.terminals[resp.SessionID] = &session
+	a.mu.Unlock()
 
 	// stream outputs
-	go a.streamTerminalOutput(session)
+	go a.streamTerminalOutput(&session)
 
 	return session.id, nil
 }
 
 func (a *App) ResizeTerminal(sessionID string, height uint, width uint) error {
-	mu.Lock()
-	defer mu.Unlock() // hold lock till function execution is complete
+	a.mu.Lock()
+	defer a.mu.Unlock() // hold lock till function execution is complete
 
-	session, ok := terminals[sessionID]
+	session, ok := a.terminals[sessionID]
 	if !ok {
 		return fmt.Errorf("session id:%s not found", sessionID)
 	}
@@ -63,10 +66,10 @@ func (a *App) ResizeTerminal(sessionID string, height uint, width uint) error {
 }
 
 func (a *App) SendTerminalInput(sessionID string, data string) error {
-	mu.Lock()
-	defer mu.Unlock() // hold lock till function execution is complete
+	a.mu.Lock()
+	defer a.mu.Unlock() // hold lock till function execution is complete
 
-	session, ok := terminals[sessionID]
+	session, ok := a.terminals[sessionID]
 	if !ok {
 		return fmt.Errorf("session id:%s not found", sessionID)
 	}
@@ -80,22 +83,24 @@ func (a *App) SendTerminalInput(sessionID string, data string) error {
 }
 
 func (a *App) CloseTerminal(sessionID string) error {
-	mu.Lock()
-	defer mu.Unlock() // hold lock till function execution is complete
+	a.mu.Lock()
 
-	session, ok := terminals[sessionID]
+	session, ok := a.terminals[sessionID]
 	if !ok {
+		a.mu.Unlock()
 		return fmt.Errorf("session id:%s not found", sessionID)
 	}
 
-	delete(terminals, sessionID)
-	session.hijack.Close()
-	session.cancel()
+	delete(a.terminals, sessionID)
+
+	a.mu.Unlock()
+
+	session.Close()
 
 	return nil
 }
 
-func (a *App) streamTerminalOutput(session Session) {
+func (a *App) streamTerminalOutput(session *Session) {
 	buff := make([]byte, 4096)
 
 	for {
@@ -104,16 +109,15 @@ func (a *App) streamTerminalOutput(session Session) {
 		n, err := session.hijack.Reader.Read(buff)
 
 		if err != nil {
-			mu.Lock()
-			if _, ok := terminals[session.id]; ok {
-
-				delete(terminals, session.id)
-				session.hijack.Close()
-				session.cancel()
-
-				a.emitTerminalClosed(session.id)
+			a.mu.Lock()
+			if _, ok := a.terminals[session.id]; ok {
+				delete(a.terminals, session.id)
 			}
-			mu.Unlock()
+			a.mu.Unlock()
+
+			session.Close()
+			a.emitTerminalClosed(session.id)
+
 			return
 		}
 
@@ -126,5 +130,5 @@ func (a *App) emitTerminalOutput(sessionID string, data string) {
 }
 
 func (a *App) emitTerminalClosed(sessionID string) {
-	runtime.EventsEmit(a.ctx, "terminal:closed"+sessionID, true)
+	runtime.EventsEmit(a.ctx, "terminal:closed:"+sessionID, true)
 }
