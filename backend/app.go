@@ -146,7 +146,16 @@ func (a *App) Shutdown(_ context.Context) {
 	a.logger.Close()
 
 	// close all terminals
+	a.mu.Lock()
+	sessionIDs := make([]string, 0, len(a.terminals))
+
 	for sessionID := range a.terminals {
+		sessionIDs = append(sessionIDs, sessionID)
+	}
+
+	a.mu.Unlock()
+
+	for _, sessionID := range sessionIDs {
 		if err := a.CloseTerminal(sessionID); err != nil {
 			a.logger.Error().
 				Err(err).
