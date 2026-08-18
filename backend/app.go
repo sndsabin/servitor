@@ -177,7 +177,7 @@ func (a *App) syncResourcesWithRemote() {
 	if err := a.resourceSyncer.SyncWithRemote(ctx); err != nil {
 		a.logger.Error().
 			Err(err).
-			Msg("error syncing to remote resouces")
+			Msg("error syncing to remote resources")
 	}
 
 	a.logger.Info().
