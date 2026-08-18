@@ -3,15 +3,24 @@ package backend
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/moby/moby/client"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type Session struct {
-	id     string
-	hijack client.HijackedResponse
-	cancel context.CancelFunc
+	id        string
+	hijack    client.HijackedResponse
+	cancel    context.CancelFunc
+	closeOnce sync.Once
+}
+
+func (s *Session) Close() {
+	s.closeOnce.Do(func() {
+		s.hijack.Close()
+		s.cancel()
+	})
 }
 
 func (a *App) StartTerminal(containerID string) (string, error) {
@@ -34,7 +43,7 @@ func (a *App) StartTerminal(containerID string) (string, error) {
 	a.mu.Unlock()
 
 	// stream outputs
-	go a.streamTerminalOutput(session)
+	go a.streamTerminalOutput(&session)
 
 	return session.id, nil
 }
@@ -75,7 +84,6 @@ func (a *App) SendTerminalInput(sessionID string, data string) error {
 
 func (a *App) CloseTerminal(sessionID string) error {
 	a.mu.Lock()
-	defer a.mu.Unlock() // hold lock till function execution is complete
 
 	session, ok := a.terminals[sessionID]
 	if !ok {
@@ -83,13 +91,15 @@ func (a *App) CloseTerminal(sessionID string) error {
 	}
 
 	delete(a.terminals, sessionID)
-	session.hijack.Close()
-	session.cancel()
+
+	a.mu.Unlock()
+
+	session.Close()
 
 	return nil
 }
 
-func (a *App) streamTerminalOutput(session Session) {
+func (a *App) streamTerminalOutput(session *Session) {
 	buff := make([]byte, 4096)
 
 	for {
@@ -98,16 +108,17 @@ func (a *App) streamTerminalOutput(session Session) {
 		n, err := session.hijack.Reader.Read(buff)
 
 		if err != nil {
-			a.mu.Lock()
-			if _, ok := a.terminals[session.id]; ok {
-
-				delete(a.terminals, session.id)
-				session.hijack.Close()
-				session.cancel()
-
-				a.emitTerminalClosed(session.id)
+			if _, ok := a.terminals[session.id]; !ok {
+				return
 			}
+
+			a.mu.Lock()
+			delete(a.terminals, session.id)
 			a.mu.Unlock()
+
+			session.Close()
+			a.emitTerminalClosed(session.id)
+
 			return
 		}
 
