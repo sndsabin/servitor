@@ -273,10 +273,11 @@ func (rs *ResourceSyncer) syncDeletedFiles(remoteFilesSynced []string, resourceF
 	}
 
 	var errs []error
-	// delete the files that are not in remote but were copied during start up
+	// delete managed files that are no longer present remotely
 	for _, entry := range embeddedFiles {
 		if !slices.Contains(remoteFilesSynced, entry) {
-			if err := os.Remove(entry); err != nil {
+			err := os.Remove(entry)
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
 				errs = append(errs, fmt.Errorf("error deleting %s: %w", entry, err))
 			}
 		}
