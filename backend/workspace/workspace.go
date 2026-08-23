@@ -180,7 +180,9 @@ func (w *Workspace) GetManagedResourceFiles(resourceFS embed.FS, resourceRootDir
 	})
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error fetching managed resource file paths: %w", err))
+	}
 
+	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
 	}
 
