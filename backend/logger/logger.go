@@ -18,6 +18,7 @@ const (
 type Logger struct {
 	logger zerolog.Logger
 	file   *os.File
+	Path   string
 }
 
 func NewLogger(logDir string) (*Logger, error) {
@@ -44,6 +45,7 @@ func NewLogger(logDir string) (*Logger, error) {
 	return &Logger{
 		logger: logger,
 		file:   logFile,
+		Path:   logPath,
 	}, nil
 }
 

@@ -61,10 +61,13 @@ func NewApp(config *AppConfig) (*App, error) {
 		return nil, err
 	}
 
-	appLogger, err := logger.NewLogger(appWorkspace.Dirs.Logs)
+	appLogger, err := logger.NewLogger(appWorkspace.Dirs.Logs.Path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize logger: %w", err)
 	}
+
+	// add log file path to appWorkspace
+	appWorkspace.Dirs.Logs.Files = append(appWorkspace.Dirs.Logs.Files, appLogger.Path)
 
 	userAgent := fmt.Sprintf("%s-%s", strings.ToLower(config.Name), config.Version)
 	docker, err := docker.New(userAgent, config.Name)

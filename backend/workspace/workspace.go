@@ -16,9 +16,14 @@ type Workspace struct {
 }
 
 type WorkspaceDirs struct {
-	Blueprints string
-	Logos      string
-	Logs       string
+	Blueprints Directory
+	Logos      Directory
+	Logs       Directory
+}
+
+type Directory struct {
+	Path  string
+	Files []string
 }
 
 const (
@@ -57,9 +62,15 @@ func New(appName string, schemaVersion string) (*Workspace, error) {
 		RootDir:       rootDir,
 		schemaVersion: schemaVersion,
 		Dirs: WorkspaceDirs{
-			Blueprints: blueprintsDir,
-			Logos:      logosDir,
-			Logs:       logsDir,
+			Blueprints: Directory{
+				Path: blueprintsDir,
+			},
+			Logos: Directory{
+				Path: logosDir,
+			},
+			Logs: Directory{
+				Path: logsDir,
+			},
 		},
 	}, nil
 }
@@ -91,13 +102,16 @@ func (w *Workspace) SyncEmbeddedResources(resourceFS embed.FS, embeddedRootDir s
 		}
 
 		var destination string
+		var entries *[]string
 
 		switch fileExt {
 		case ".json":
-			destination = filepath.Join(w.Dirs.Blueprints, fileName)
+			destination = filepath.Join(w.Dirs.Blueprints.Path, fileName)
+			entries = &w.Dirs.Blueprints.Files
 
 		case ".svg":
-			destination = filepath.Join(w.Dirs.Logos, fileName)
+			destination = filepath.Join(w.Dirs.Logos.Path, fileName)
+			entries = &w.Dirs.Logos.Files
 
 		default:
 			return nil // continue
@@ -108,6 +122,8 @@ func (w *Workspace) SyncEmbeddedResources(resourceFS embed.FS, embeddedRootDir s
 			errs = append(errs, fmt.Errorf("error writing to file %s: %w", destination, err))
 			return nil // continue
 		}
+
+		*entries = append(*entries, destination)
 
 		return nil
 	})

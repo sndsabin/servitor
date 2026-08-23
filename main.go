@@ -39,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logoDir = app.Workspace.Dirs.Logos
+	logoDir = app.Workspace.Dirs.Logos.Path
 
 	// Create application with options
 	err = wails.Run(&options.App{

@@ -5,12 +5,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand/v2"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -80,7 +82,8 @@ func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context) error {
 		return err
 	}
 
-	if err := rs.syncFromZipArchive(resourceZip); err != nil {
+	remoteSyncedFiles, err := rs.syncFromZipArchive(resourceZip)
+	if err != nil {
 		return err
 	}
 
@@ -88,6 +91,11 @@ func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context) error {
 	localManifest.Build = remoteManifest.Build
 	localManifest.CreatedAt = time.Now()
 	if err := rs.workspace.UpdateManifest(localManifest); err != nil {
+		return err
+	}
+
+	// sync deleted files from the remote
+	if err := rs.syncDeletedFiles(remoteSyncedFiles); err != nil {
 		return err
 	}
 
@@ -169,29 +177,35 @@ func (rs *ResourceSyncer) sendGetRequest(ctx context.Context, url string, accept
 	return resp, nil
 }
 
-func (rs *ResourceSyncer) syncFromZipArchive(src string) error {
+func (rs *ResourceSyncer) syncFromZipArchive(src string) ([]string, error) {
 	reader, err := zip.OpenReader(src)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer reader.Close()
+
+	var filesSynced []string
 
 	for _, file := range reader.File {
 		if file.FileInfo().IsDir() {
 			continue
 		}
 
-		err := rs.processZipFile(file)
+		syncedFilePath, err := rs.processZipFile(file)
 		if err != nil {
-			return fmt.Errorf("error processing file %s:%w", file.Name, err)
+			return nil, fmt.Errorf("error processing file %s:%w", file.Name, err)
+		}
+
+		if syncedFilePath != "" {
+			filesSynced = append(filesSynced, syncedFilePath)
 		}
 	}
 
-	return nil
+	return filesSynced, nil
 }
 
-func (rs *ResourceSyncer) processZipFile(file *zip.File) error {
+func (rs *ResourceSyncer) processZipFile(file *zip.File) (string, error) {
 	fileName := filepath.Base(file.Name)
 	fileExt := filepath.Ext(fileName)
 
@@ -199,19 +213,19 @@ func (rs *ResourceSyncer) processZipFile(file *zip.File) error {
 
 	switch fileExt {
 	case ".json":
-		destDir = rs.workspace.Dirs.Blueprints
+		destDir = rs.workspace.Dirs.Blueprints.Path
 
 	case ".svg":
-		destDir = rs.workspace.Dirs.Logos
+		destDir = rs.workspace.Dirs.Logos.Path
 
 	default:
-		return nil
+		return "", nil
 
 	}
 
 	srcFile, err := file.Open()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer srcFile.Close()
 
@@ -219,16 +233,16 @@ func (rs *ResourceSyncer) processZipFile(file *zip.File) error {
 
 	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, resourcePermissionMode)
 	if err != nil {
-		return fmt.Errorf("error opening file %s: %w", destFilePath, err)
+		return "", fmt.Errorf("error opening file %s: %w", destFilePath, err)
 	}
 	defer destFile.Close()
 
 	_, err = io.Copy(destFile, srcFile)
 	if err != nil {
-		return fmt.Errorf("error copying file %s: %w", destFilePath, err)
+		return "", fmt.Errorf("error copying file %s: %w", destFilePath, err)
 	}
 
-	return nil
+	return destFilePath, nil
 }
 
 func verifyChecksum(filename string, expected string) error {
@@ -249,6 +263,22 @@ func verifyChecksum(filename string, expected string) error {
 	}
 
 	return nil
+}
+
+func (rs *ResourceSyncer) syncDeletedFiles(remoteFilesSynced []string) error {
+	var errs []error
+	embeddedFiles := slices.Concat(rs.workspace.Dirs.Blueprints.Files, rs.workspace.Dirs.Logos.Files)
+
+	// delete the files that are not in remote but were copied during start up
+	for _, entry := range embeddedFiles {
+		if !slices.Contains(remoteFilesSynced, entry) {
+			if err := os.Remove(entry); err != nil {
+				errs = append(errs, fmt.Errorf("error deleting %s: %w", entry, err))
+			}
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 func validateConfig(config *ResourceSyncerConfig) error {
