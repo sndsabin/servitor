@@ -1,36 +1,39 @@
-.PHONY: setup hooks fmt fmt_check dev build-windows build-linux build-mac clean help
+.PHONY: setup setup_git_config fmt fmt_check dev build-windows build-linux build-mac clean help
 
 # setup app
 setup:
-	@make hooks
-	@echo "Installing frontend dependencies..."
+	@make setup_git_config
+	@echo "[INFO] Installing frontend dependencies..."
 	cd frontend && npm install
-	@echo "Setup complete"
+	@echo "[OK] Setup complete"
 
-# configure git hooks
-hooks:
-	@echo "Configuring git hooks..."
+# configure git config
+setup_git_config:
+	@echo "[INFO] Configuring git..."
 	chmod +x .githooks/*
 	git config core.hooksPath .githooks
-	@echo "Git hooks enabled."
+	@echo "[OK] Git hooks enabled."
+	
+	git config commit.template .gitmessage
+	@echo "[OK] Git commit template set."
 
 # format all code
 fmt:
-	@echo "Formatting Go..."
+	@echo "[INFO] Formatting Go..."
 	gofmt -w .
 
-	@echo "Formatting frontend..."
+	@echo "[INFO] Formatting frontend..."
 	cd frontend && npm run format
 
 # check formatting
 fmt_check:
-	@echo "Checking Go formatting..."
-	@test -z "$$(gofmt -l .)" || (echo "Go files are not formatted. Run 'make fmt'"; exit 1)
+	@echo "[INFO] Checking Go formatting..."
+	@test -z "$$(gofmt -l .)" || (echo "[X] Go files are not formatted. Run 'make fmt'"; exit 1)
 
 	@echo "Checking frontend formatting..."
-	cd frontend && npm run format:check || (echo "Frontend files are not formatted. Run 'make fmt'"; exit 1)
+	cd frontend && npm run format:check || (echo "[X] Frontend files are not formatted. Run 'make fmt'"; exit 1)
 
-	@echo "Formatting OK!"
+	@echo "[OK] Formatting OK!"
 
 # run the app in development mode
 dev:

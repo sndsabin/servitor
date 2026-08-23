@@ -16,7 +16,7 @@ import (
 
 const (
 	AppName            = "Servitor"
-	AppVersion         = "0.0.5"
+	AppVersion         = "0.0.6"
 	AppSchemaVersion   = "v1"
 	AppResourceBaseUrl = "https://sndsabin.github.io/servitor-data"
 )
@@ -39,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logoDir = app.Workspace.Dirs.Logos
+	logoDir = app.Workspace.Dirs.Logos.Path
 
 	// Create application with options
 	err = wails.Run(&options.App{

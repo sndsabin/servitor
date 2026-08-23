@@ -4,13 +4,16 @@ import (
 	"archive/zip"
 	"context"
 	"crypto/sha256"
+	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand/v2"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -48,7 +51,7 @@ func NewResourceSyncer(config *ResourceSyncerConfig) (*ResourceSyncer, error) {
 	}, nil
 }
 
-func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context) error {
+func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context, resourceFS embed.FS, resourceRootDir string) error {
 	remoteManifest, err := rs.fetchRemoteManifest(ctx)
 	if err != nil {
 		return err
@@ -80,7 +83,13 @@ func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context) error {
 		return err
 	}
 
-	if err := rs.syncFromZipArchive(resourceZip); err != nil {
+	remoteSyncedFiles, err := rs.syncFromZipArchive(resourceZip)
+	if err != nil {
+		return err
+	}
+
+	// sync deleted files from the remote
+	if err := rs.syncDeletedFiles(remoteSyncedFiles, resourceFS, resourceRootDir); err != nil {
 		return err
 	}
 
@@ -169,29 +178,35 @@ func (rs *ResourceSyncer) sendGetRequest(ctx context.Context, url string, accept
 	return resp, nil
 }
 
-func (rs *ResourceSyncer) syncFromZipArchive(src string) error {
+func (rs *ResourceSyncer) syncFromZipArchive(src string) ([]string, error) {
 	reader, err := zip.OpenReader(src)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer reader.Close()
+
+	var filesSynced []string
 
 	for _, file := range reader.File {
 		if file.FileInfo().IsDir() {
 			continue
 		}
 
-		err := rs.processZipFile(file)
+		syncedFilePath, err := rs.processZipFile(file)
 		if err != nil {
-			return fmt.Errorf("error processing file %s:%w", file.Name, err)
+			return nil, fmt.Errorf("error processing file %s:%w", file.Name, err)
+		}
+
+		if syncedFilePath != "" {
+			filesSynced = append(filesSynced, syncedFilePath)
 		}
 	}
 
-	return nil
+	return filesSynced, nil
 }
 
-func (rs *ResourceSyncer) processZipFile(file *zip.File) error {
+func (rs *ResourceSyncer) processZipFile(file *zip.File) (string, error) {
 	fileName := filepath.Base(file.Name)
 	fileExt := filepath.Ext(fileName)
 
@@ -199,19 +214,19 @@ func (rs *ResourceSyncer) processZipFile(file *zip.File) error {
 
 	switch fileExt {
 	case ".json":
-		destDir = rs.workspace.Dirs.Blueprints
+		destDir = rs.workspace.Dirs.Blueprints.Path
 
 	case ".svg":
-		destDir = rs.workspace.Dirs.Logos
+		destDir = rs.workspace.Dirs.Logos.Path
 
 	default:
-		return nil
+		return "", nil
 
 	}
 
 	srcFile, err := file.Open()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer srcFile.Close()
 
@@ -219,16 +234,16 @@ func (rs *ResourceSyncer) processZipFile(file *zip.File) error {
 
 	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, resourcePermissionMode)
 	if err != nil {
-		return fmt.Errorf("error opening file %s: %w", destFilePath, err)
+		return "", fmt.Errorf("error opening file %s: %w", destFilePath, err)
 	}
 	defer destFile.Close()
 
 	_, err = io.Copy(destFile, srcFile)
 	if err != nil {
-		return fmt.Errorf("error copying file %s: %w", destFilePath, err)
+		return "", fmt.Errorf("error copying file %s: %w", destFilePath, err)
 	}
 
-	return nil
+	return destFilePath, nil
 }
 
 func verifyChecksum(filename string, expected string) error {
@@ -249,6 +264,26 @@ func verifyChecksum(filename string, expected string) error {
 	}
 
 	return nil
+}
+
+func (rs *ResourceSyncer) syncDeletedFiles(remoteFilesSynced []string, resourceFS embed.FS, resourceRootDir string) error {
+	embeddedFiles, err := rs.workspace.GetManagedResourceFiles(resourceFS, resourceRootDir)
+	if err != nil {
+		return err
+	}
+
+	var errs []error
+	// delete managed files that are no longer present remotely
+	for _, entry := range embeddedFiles {
+		if !slices.Contains(remoteFilesSynced, entry) {
+			err := os.Remove(entry)
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
+				errs = append(errs, fmt.Errorf("error deleting %s: %w", entry, err))
+			}
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 func validateConfig(config *ResourceSyncerConfig) error {

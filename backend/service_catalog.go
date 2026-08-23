@@ -54,11 +54,11 @@ func (a *App) GetService(name string) (Service, bool) {
 }
 
 func (a *App) fetchServiceCatalog() ([]Service, error) {
-	entries, err := os.ReadDir(a.Workspace.Dirs.Blueprints)
+	entries, err := os.ReadDir(a.Workspace.Dirs.Blueprints.Path)
 	if err != nil {
 		a.logger.Error().
 			Err(err).
-			Str("directory", a.Workspace.Dirs.Blueprints).
+			Str("directory", a.Workspace.Dirs.Blueprints.Path).
 			Msg("error opening directory.")
 
 		return nil, err
@@ -71,7 +71,7 @@ func (a *App) fetchServiceCatalog() ([]Service, error) {
 			continue
 		}
 
-		bluePrintFile := filepath.Join(a.Workspace.Dirs.Blueprints, entry.Name())
+		bluePrintFile := filepath.Join(a.Workspace.Dirs.Blueprints.Path, entry.Name())
 
 		bluePrintData, err := os.ReadFile(bluePrintFile)
 		if err != nil {

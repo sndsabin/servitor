@@ -48,6 +48,7 @@ type AppConfig struct {
 }
 
 const DockerStatusEvent = "docker:status"
+const resourceRootDir = "resources"
 const syncTimeOut = 5 * time.Minute
 
 // NewApp creates a new App application struct
@@ -61,10 +62,13 @@ func NewApp(config *AppConfig) (*App, error) {
 		return nil, err
 	}
 
-	appLogger, err := logger.NewLogger(appWorkspace.Dirs.Logs)
+	appLogger, err := logger.NewLogger(appWorkspace.Dirs.Logs.Path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize logger: %w", err)
 	}
+
+	// add log file path to appWorkspace
+	appWorkspace.Dirs.Logs.Files = append(appWorkspace.Dirs.Logs.Files, appLogger.FilePath)
 
 	userAgent := fmt.Sprintf("%s-%s", strings.ToLower(config.Name), config.Version)
 	docker, err := docker.New(userAgent, config.Name)
@@ -101,7 +105,7 @@ func (a *App) Startup(ctx context.Context) {
 
 	// sync embedded resources to disk only on first run after install
 	if !a.Workspace.ManifestExists() {
-		err := a.Workspace.SyncEmbeddedResources(resourcesFS, "resources")
+		err := a.Workspace.SyncEmbeddedResources(resourcesFS, resourceRootDir)
 		if err != nil {
 			a.logger.Error().
 				Err(err).
@@ -197,7 +201,7 @@ func (a *App) syncResourcesWithRemote() {
 	ctx, cancel := context.WithTimeout(a.ctx, syncTimeOut)
 	defer cancel()
 
-	if err := a.resourceSyncer.SyncWithRemote(ctx); err != nil {
+	if err := a.resourceSyncer.SyncWithRemote(ctx, a.resourcesFS, resourceRootDir); err != nil {
 		a.logger.Error().
 			Err(err).
 			Msg("error syncing to remote resources")

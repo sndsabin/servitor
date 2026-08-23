@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 type Workspace struct {
@@ -16,9 +17,14 @@ type Workspace struct {
 }
 
 type WorkspaceDirs struct {
-	Blueprints string
-	Logos      string
-	Logs       string
+	Blueprints Directory
+	Logos      Directory
+	Logs       Directory
+}
+
+type Directory struct {
+	Path  string
+	Files []string
 }
 
 const (
@@ -57,21 +63,27 @@ func New(appName string, schemaVersion string) (*Workspace, error) {
 		RootDir:       rootDir,
 		schemaVersion: schemaVersion,
 		Dirs: WorkspaceDirs{
-			Blueprints: blueprintsDir,
-			Logos:      logosDir,
-			Logs:       logsDir,
+			Blueprints: Directory{
+				Path: blueprintsDir,
+			},
+			Logos: Directory{
+				Path: logosDir,
+			},
+			Logs: Directory{
+				Path: logsDir,
+			},
 		},
 	}, nil
 }
 
-func (w *Workspace) SyncEmbeddedResources(resourceFS embed.FS, embeddedRootDir string) error {
-	if embeddedRootDir == "" {
-		return fmt.Errorf("embedded root dir cannot be empty")
+func (w *Workspace) SyncEmbeddedResources(resourceFS embed.FS, resourceRootDir string) error {
+	if resourceRootDir == "" {
+		return fmt.Errorf("resource root dir cannot be empty")
 	}
 
 	var errs []error
 
-	err := fs.WalkDir(resourceFS, embeddedRootDir, func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(resourceFS, resourceRootDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			errs = append(errs, err)
 			return nil // continue
@@ -94,10 +106,12 @@ func (w *Workspace) SyncEmbeddedResources(resourceFS embed.FS, embeddedRootDir s
 
 		switch fileExt {
 		case ".json":
-			destination = filepath.Join(w.Dirs.Blueprints, fileName)
+			destination = filepath.Join(w.Dirs.Blueprints.Path, fileName)
+			w.Dirs.Blueprints.Files = append(w.Dirs.Blueprints.Files, destination)
 
 		case ".svg":
-			destination = filepath.Join(w.Dirs.Logos, fileName)
+			destination = filepath.Join(w.Dirs.Logos.Path, fileName)
+			w.Dirs.Logos.Files = append(w.Dirs.Logos.Files, destination)
 
 		default:
 			return nil // continue
@@ -123,4 +137,54 @@ func (w *Workspace) SyncEmbeddedResources(resourceFS embed.FS, embeddedRootDir s
 	}
 
 	return errors.Join(errs...)
+}
+
+func (w *Workspace) GetManagedResourceFiles(resourceFS embed.FS, resourceRootDir string) ([]string, error) {
+	if resourceRootDir == "" {
+		return nil, fmt.Errorf("resource root dir cannot be empty")
+	}
+
+	if len(w.Dirs.Blueprints.Files) > 0 && len(w.Dirs.Logos.Files) > 0 {
+		return slices.Concat(w.Dirs.Blueprints.Files, w.Dirs.Logos.Files), nil
+	}
+
+	var errs []error
+
+	err := fs.WalkDir(resourceFS, resourceRootDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			errs = append(errs, err)
+			return nil // continue walking
+		}
+
+		if d.IsDir() {
+			return nil // continue walking
+		}
+
+		fileName := filepath.Base(path)
+		fileExt := filepath.Ext(path)
+
+		switch fileExt {
+		case ".json":
+			jsonFilePath := filepath.Join(w.Dirs.Blueprints.Path, fileName)
+			w.Dirs.Blueprints.Files = append(w.Dirs.Blueprints.Files, jsonFilePath)
+
+		case ".svg":
+			svgFilePath := filepath.Join(w.Dirs.Logos.Path, fileName)
+			w.Dirs.Logos.Files = append(w.Dirs.Logos.Files, svgFilePath)
+
+		default:
+			return nil
+		}
+
+		return nil
+	})
+	if err != nil {
+		errs = append(errs, fmt.Errorf("error fetching managed resource file paths: %w", err))
+	}
+
+	if len(errs) > 0 {
+		return nil, errors.Join(errs...)
+	}
+
+	return slices.Concat(w.Dirs.Blueprints.Files, w.Dirs.Logos.Files), nil
 }
