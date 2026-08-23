@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"crypto/sha256"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -50,7 +51,7 @@ func NewResourceSyncer(config *ResourceSyncerConfig) (*ResourceSyncer, error) {
 	}, nil
 }
 
-func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context) error {
+func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context, resourceFS embed.FS, resourceRootDir string) error {
 	remoteManifest, err := rs.fetchRemoteManifest(ctx)
 	if err != nil {
 		return err
@@ -87,15 +88,15 @@ func (rs *ResourceSyncer) SyncWithRemote(ctx context.Context) error {
 		return err
 	}
 
+	// sync deleted files from the remote
+	if err := rs.syncDeletedFiles(remoteSyncedFiles, resourceFS, resourceRootDir); err != nil {
+		return err
+	}
+
 	// update local manifest
 	localManifest.Build = remoteManifest.Build
 	localManifest.CreatedAt = time.Now()
 	if err := rs.workspace.UpdateManifest(localManifest); err != nil {
-		return err
-	}
-
-	// sync deleted files from the remote
-	if err := rs.syncDeletedFiles(remoteSyncedFiles); err != nil {
 		return err
 	}
 
@@ -265,10 +266,13 @@ func verifyChecksum(filename string, expected string) error {
 	return nil
 }
 
-func (rs *ResourceSyncer) syncDeletedFiles(remoteFilesSynced []string) error {
-	var errs []error
-	embeddedFiles := slices.Concat(rs.workspace.Dirs.Blueprints.Files, rs.workspace.Dirs.Logos.Files)
+func (rs *ResourceSyncer) syncDeletedFiles(remoteFilesSynced []string, resourceFS embed.FS, resourceRootDir string) error {
+	embeddedFiles, err := rs.workspace.GetManagedResourceFiles(resourceFS, resourceRootDir)
+	if err != nil {
+		return err
+	}
 
+	var errs []error
 	// delete the files that are not in remote but were copied during start up
 	for _, entry := range embeddedFiles {
 		if !slices.Contains(remoteFilesSynced, entry) {

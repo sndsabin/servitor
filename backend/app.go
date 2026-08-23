@@ -201,7 +201,7 @@ func (a *App) syncResourcesWithRemote() {
 	ctx, cancel := context.WithTimeout(a.ctx, syncTimeOut)
 	defer cancel()
 
-	if err := a.resourceSyncer.SyncWithRemote(ctx); err != nil {
+	if err := a.resourceSyncer.SyncWithRemote(ctx, a.resourcesFS, resourceRootDir); err != nil {
 		a.logger.Error().
 			Err(err).
 			Msg("error syncing to remote resources")
