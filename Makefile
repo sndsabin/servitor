@@ -30,7 +30,7 @@ fmt_check:
 	@echo "[INFO] Checking Go formatting..."
 	@test -z "$$(gofmt -l .)" || (echo "[X] Go files are not formatted. Run 'make fmt'"; exit 1)
 
-	@echo "Checking frontend formatting..."
+	@echo "[INFO] Checking frontend formatting..."
 	cd frontend && npm run format:check || (echo "[X] Frontend files are not formatted. Run 'make fmt'"; exit 1)
 
 	@echo "[OK] Formatting OK!"
@@ -38,7 +38,12 @@ fmt_check:
 # run the app in development mode
 dev:
 	@make setup
-	wails dev $(WAILS_TAGS)
+	@read -p "[QUESTION] Include webkit2_41 tag? (y/n): " includeWebkitTag; \
+	if [ "$${includeWebkitTag}" = "n" ] || [ "$${includeWebkitTag}" = "N" ]; then \
+		wails dev; \
+	else \
+		wails dev -tags webkit2_41; \
+	fi
 
 # build the app for windows
 build-windows:
@@ -46,7 +51,7 @@ build-windows:
 
 # build the app for linux
 build-linux:
-	@read -p "Include webkit2_41 tag? (y/n): " includeWebkitTag; \
+	@read -p "[QUESTION] Include webkit2_41 tag? (y/n): " includeWebkitTag; \
 	if [ "$${includeWebkitTag}" = "n" ] || [ "$${includeWebkitTag}" = "N" ]; then \
 		wails build -platform linux/amd64; \
 	else \

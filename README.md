@@ -83,11 +83,7 @@ make dev
 
 This starts the application in development mode with live reloading for both the Go backend and the frontend.
 
-> Note: On newer Linux distributions, you may need to pass the `webkit2_41` build tag:
->
-> ```bash
-> make dev WAILS_TAGS="-tags webkit2_41"
-> ```
+> Note: On newer Linux distributions, you may need include `webkit2_41` tag:
 
 ### Build commands
 
@@ -100,12 +96,6 @@ make build-linux
 
 # Build app for macOS
 make build-mac
-```
-
-For newer Linux environments:
-
-```bash
-make build-linux WAILS_TAGS="-tags webkit2_41"
 ```
 
 ## Contributing
