@@ -67,7 +67,7 @@ func NewApp(config *AppConfig) (*App, error) {
 	}
 
 	// add log file path to appWorkspace
-	appWorkspace.Dirs.Logs.Files = append(appWorkspace.Dirs.Logs.Files, appLogger.Path)
+	appWorkspace.Dirs.Logs.Files = append(appWorkspace.Dirs.Logs.Files, appLogger.FilePath)
 
 	userAgent := fmt.Sprintf("%s-%s", strings.ToLower(config.Name), config.Version)
 	docker, err := docker.New(userAgent, config.Name)
