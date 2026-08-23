@@ -48,6 +48,7 @@ type AppConfig struct {
 }
 
 const DockerStatusEvent = "docker:status"
+const resourceRootDir = "resources"
 const syncTimeOut = 5 * time.Minute
 
 // NewApp creates a new App application struct
@@ -104,7 +105,7 @@ func (a *App) Startup(ctx context.Context) {
 
 	// sync embedded resources to disk only on first run after install
 	if !a.Workspace.ManifestExists() {
-		err := a.Workspace.SyncEmbeddedResources(resourcesFS, "resources")
+		err := a.Workspace.SyncEmbeddedResources(resourcesFS, resourceRootDir)
 		if err != nil {
 			a.logger.Error().
 				Err(err).
