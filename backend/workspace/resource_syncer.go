@@ -246,26 +246,6 @@ func (rs *ResourceSyncer) processZipFile(file *zip.File) (string, error) {
 	return destFilePath, nil
 }
 
-func verifyChecksum(filename string, expected string) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return fmt.Errorf("error opening file %s: %w", filename, err)
-	}
-	defer file.Close()
-
-	hasher := sha256.New()
-	if _, err := io.Copy(hasher, file); err != nil {
-		return err
-	}
-
-	actual := fmt.Sprintf("%x", hasher.Sum(nil))
-	if actual != expected {
-		return fmt.Errorf("checksum mismatch (actual: %s, expected:%s)", actual, expected)
-	}
-
-	return nil
-}
-
 func (rs *ResourceSyncer) syncDeletedFiles(remoteFilesSynced []string, resourceFS embed.FS, resourceRootDir string) error {
 	embeddedFiles, err := rs.workspace.GetManagedResourceFiles(resourceFS, resourceRootDir)
 	if err != nil {
@@ -284,6 +264,26 @@ func (rs *ResourceSyncer) syncDeletedFiles(remoteFilesSynced []string, resourceF
 	}
 
 	return errors.Join(errs...)
+}
+
+func verifyChecksum(filename string, expected string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("error opening file %s: %w", filename, err)
+	}
+	defer file.Close()
+
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return err
+	}
+
+	actual := fmt.Sprintf("%x", hasher.Sum(nil))
+	if actual != expected {
+		return fmt.Errorf("checksum mismatch (actual: %s, expected:%s)", actual, expected)
+	}
+
+	return nil
 }
 
 func validateConfig(config *ResourceSyncerConfig) error {
