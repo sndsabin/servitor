@@ -27,7 +27,7 @@ class ErrorBoundary extends Component<Props, State> {
     api.log(LOG_LEVEL.Error, `${error.message} \n ${errorInfo.componentStack}`);
   }
 
-  handleRetry() {
+  handleRetry = () => {
     // clear the error, and increase retryCount if its first time
     // otherwise, reload the app
 
@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<Props, State> {
     }
 
     this.setState({ error: null, retryCount: this.state.retryCount + 1 });
-  }
+  };
 
   render() {
     if (this.state.error) {
