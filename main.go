@@ -18,7 +18,7 @@ import (
 
 const (
 	AppName            = "Servitor"
-	AppVersion         = "0.0.7"
+	AppVersion         = "0.0.9"
 	AppSchemaVersion   = "v1"
 	AppResourceBaseUrl = "https://sndsabin.github.io/servitor-data"
 )
