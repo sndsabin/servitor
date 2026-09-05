@@ -10,14 +10,16 @@ interface Props {
 
 interface State {
   error: Error | null;
+  retryCount: number;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   state: State = {
     error: null,
+    retryCount: 0,
   };
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { error };
   }
 
@@ -25,12 +27,24 @@ class ErrorBoundary extends Component<Props, State> {
     api.log(LOG_LEVEL.Error, `${error.message} \n ${errorInfo.componentStack}`);
   }
 
+  handleRetry = () => {
+    // clear the error, and increase retryCount if it's first time
+    // otherwise, reload the app
+
+    if (this.state.retryCount >= 1) {
+      window.location.reload();
+      return;
+    }
+
+    this.setState((prev) => ({ error: null, retryCount: prev.retryCount + 1 }));
+  };
+
   render() {
     if (this.state.error) {
       return (
         <ErrorPage
-          error={this.state.error.message || "An unexpected error occured."}
-          onRetry={() => this.setState({ error: null })}
+          error={this.state.error.message || "An unexpected error occurred."}
+          onRetry={this.handleRetry}
         />
       );
     }

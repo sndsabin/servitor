@@ -232,7 +232,7 @@ func (rs *ResourceSyncer) processZipFile(file *zip.File) (string, error) {
 
 	destFilePath := filepath.Join(destDir, fileName)
 
-	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, resourcePermissionMode)
+	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, FilePermMode)
 	if err != nil {
 		return "", fmt.Errorf("error opening file %s: %w", destFilePath, err)
 	}

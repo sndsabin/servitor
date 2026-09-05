@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	logFile         = "app.log"
-	logFilePermMode = 0644
+	fileName     = "app.log"
+	filePermMode = 0644
 )
 
 type Logger struct {
@@ -28,12 +28,12 @@ func NewLogger(logDir string) (*Logger, error) {
 
 	zerolog.TimeFieldFormat = time.DateTime
 
-	logPath := filepath.Join(logDir, logFile)
+	logPath := filepath.Join(logDir, fileName)
 
 	logFile, err := os.OpenFile(
 		logPath,
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
-		logFilePermMode,
+		filePermMode,
 	)
 
 	if err != nil {

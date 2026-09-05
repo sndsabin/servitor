@@ -4,9 +4,11 @@ import (
 	"embed"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"servitor/backend"
+	"servitor/backend/workspace"
 	"strings"
 
 	"github.com/wailsapp/wails/v2"
@@ -27,6 +29,8 @@ var assets embed.FS
 var logoDir string
 
 func main() {
+	initCrashLog()
+
 	// Create an instance of the app structure
 	appConfig := &backend.AppConfig{
 		Name:               AppName,
@@ -80,4 +84,25 @@ func serviceLogoMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func initCrashLog() {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+
+	logsDir := filepath.Join(dir, AppName, workspace.LogsDirName)
+	err = os.MkdirAll(logsDir, workspace.DirPermMode)
+	if err != nil {
+		return
+	}
+
+	filePath := filepath.Join(logsDir, "startup-error.log")
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, workspace.FilePermMode)
+	if err != nil {
+		return
+	}
+
+	log.SetOutput(file)
 }
