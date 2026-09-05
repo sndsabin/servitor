@@ -28,7 +28,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
-    // clear the error, and increase retryCount if its first time
+    // clear the error, and increase retryCount if it's first time
     // otherwise, reload the app
 
     if (this.state.retryCount >= 1) {
