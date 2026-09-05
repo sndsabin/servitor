@@ -36,7 +36,7 @@ class ErrorBoundary extends Component<Props, State> {
       return;
     }
 
-    this.setState({ error: null, retryCount: this.state.retryCount + 1 });
+    this.setState((prev) => ({ error: null, retryCount: prev.retryCount + 1 }));
   };
 
   render() {
