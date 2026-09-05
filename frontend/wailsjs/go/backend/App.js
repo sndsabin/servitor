@@ -50,6 +50,10 @@ export function Log(arg1, arg2) {
   return window['go']['backend']['App']['Log'](arg1, arg2);
 }
 
+export function OnSecondInstanceLaunch(arg1) {
+  return window['go']['backend']['App']['OnSecondInstanceLaunch'](arg1);
+}
+
 export function ResizeTerminal(arg1, arg2, arg3) {
   return window['go']['backend']['App']['ResizeTerminal'](arg1, arg2, arg3);
 }

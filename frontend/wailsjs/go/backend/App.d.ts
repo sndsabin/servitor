@@ -3,6 +3,7 @@
 import {docker} from '../models';
 import {backend} from '../models';
 import {network} from '../models';
+import {options} from '../models';
 
 export function CloseTerminal(arg1:string):Promise<void>;
 
@@ -27,6 +28,8 @@ export function LaunchContainer(arg1:backend.StartServiceRequest):Promise<void>;
 export function ListAllContainer():Promise<Array<docker.Container>>;
 
 export function Log(arg1:backend.LogLevel,arg2:string):Promise<void>;
+
+export function OnSecondInstanceLaunch(arg1:options.SecondInstanceData):Promise<void>;
 
 export function ResizeTerminal(arg1:string,arg2:number,arg3:number):Promise<void>;
 

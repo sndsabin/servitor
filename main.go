@@ -59,6 +59,10 @@ func main() {
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup:        app.Startup,
 		OnShutdown:       app.Shutdown,
+		SingleInstanceLock: &options.SingleInstanceLock{
+			UniqueId:               "978c226e-6ca4-4a98-8885-4d14bc1045b7" + "-" + strings.ToLower(AppName),
+			OnSecondInstanceLaunch: app.OnSecondInstanceLaunch,
+		},
 		Bind: []interface{}{
 			app,
 		},

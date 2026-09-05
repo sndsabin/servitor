@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -130,6 +131,17 @@ func (a *App) Startup(ctx context.Context) {
 	a.cancel = cancel
 
 	go a.monitorDockerStatus(monitorCtx)
+}
+
+// OnSecondInstanceLaunch is called when second instance of the app
+// is opened.
+func (a *App) OnSecondInstanceLaunch(_ options.SecondInstanceData) {
+	if a.ctx == nil {
+		return
+	}
+
+	runtime.WindowUnminimise(a.ctx)
+	runtime.Show(a.ctx)
 }
 
 // Shutdown is called when app is closed
