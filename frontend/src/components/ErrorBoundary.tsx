@@ -43,7 +43,7 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <ErrorPage
-          error={this.state.error.message || "An unexpected error occured."}
+          error={this.state.error.message || "An unexpected error occurred."}
           onRetry={this.handleRetry}
         />
       );
