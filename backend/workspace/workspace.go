@@ -49,7 +49,7 @@ func New(appName string, schemaVersion string) (*Workspace, error) {
 
 	// create necessary directories
 	rootDir := filepath.Join(userConfigDir, appName)
-	logsDir := filepath.Join(rootDir, "logs")
+	logsDir := filepath.Join(rootDir, LogsDirName)
 	blueprintsDir := filepath.Join(rootDir, blueprintsDirName)
 	logosDir := filepath.Join(rootDir, assetsDirName, logosDirName)
 
