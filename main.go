@@ -98,8 +98,8 @@ func initCrashLog() {
 		return
 	}
 
-	path := filepath.Join(logsDir, "startup-error.log")
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, workspace.FilePermMode)
+	filePath := filepath.Join(logsDir, "startup-error.log")
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, workspace.FilePermMode)
 	if err != nil {
 		return
 	}
