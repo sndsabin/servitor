@@ -41,7 +41,7 @@ func (w *Workspace) createManifest() error {
 
 	// O_EXCL ensures the operation fails if the file exists
 	// O_CREATE creates file only if it's not present
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, resourcePermissionMode)
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, FilePermMode)
 	if err != nil {
 		if os.IsExist(err) {
 			// file already exist
@@ -88,7 +88,7 @@ func (w *Workspace) UpdateManifest(manifest *Manifest) error {
 	}
 
 	// os.O_TRUNC truncates the file before writing
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, resourcePermissionMode)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, FilePermMode)
 	if err != nil {
 		return fmt.Errorf("error opening manifest :%w", err)
 	}

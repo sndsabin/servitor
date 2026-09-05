@@ -28,12 +28,13 @@ type Directory struct {
 }
 
 const (
-	resourcePermissionMode = 0644
-	manifestFile           = "manifest.json"
-	blueprintsDirName      = "blueprints"
-	assetsDirName          = "assets"
-	logosDirName           = "logos"
-	logsDirName            = "logs"
+	DirPermMode       = 0755
+	FilePermMode      = 0644
+	manifestFile      = "manifest.json"
+	blueprintsDirName = "blueprints"
+	assetsDirName     = "assets"
+	logosDirName      = "logos"
+	LogsDirName       = "logs"
 )
 
 func New(appName string, schemaVersion string) (*Workspace, error) {
@@ -53,7 +54,7 @@ func New(appName string, schemaVersion string) (*Workspace, error) {
 	logosDir := filepath.Join(rootDir, assetsDirName, logosDirName)
 
 	for _, dir := range []string{rootDir, logsDir, blueprintsDir, logosDir} {
-		err = os.MkdirAll(dir, 0755)
+		err = os.MkdirAll(dir, DirPermMode)
 		if err != nil {
 			return nil, fmt.Errorf("error creating directory %q: %w", dir, err)
 		}
@@ -117,7 +118,7 @@ func (w *Workspace) SyncEmbeddedResources(resourceFS embed.FS, resourceRootDir s
 			return nil // continue
 		}
 
-		err = os.WriteFile(destination, data, resourcePermissionMode)
+		err = os.WriteFile(destination, data, FilePermMode)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error writing to file %s: %w", destination, err))
 			return nil // continue
